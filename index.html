@@ -1384,8 +1384,9 @@
     const STORAGE_SESSION_KEY = 'wa_username_pwd_session_v2';
     const STORAGE_BUS_KEY = 'wa_username_pwd_bus_v2';
     const CLOUD_DIRECTORY_TOPIC = 'bubble_global_dir_v2';
+    const RELAY_BASE_URL = 'https://ntfy.sh';
     const INACTIVITY_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-    const ONLINE_WINDOW_MS = 45 * 1000;
+    const ONLINE_WINDOW_MS = 90 * 1000;
 
     let activeUsername = '';
     let activePeerUsername = '';
@@ -1395,7 +1396,9 @@
     let cloudPollTimer = null;
     let presenceHeartbeatTimer = null;
     let isDirectorySyncing = false;
+    let isMailboxPolling = false;
     let isRealtimeOnline = false;
+    let lastCloudSuccessTs = 0;
     let typingCooldown = 0;
     let peerTypingTimeout = null;
     let activeReplyQuote = null;
@@ -1440,6 +1443,16 @@
         h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
       }
       return 'h_' + (h >>> 0).toString(16);
+    }
+
+    function fetchWithTimeout(url, options = {}, timeoutMs = 6000) {
+      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+      const finalOpts = Object.assign({ cache: 'no-store' }, options);
+      if (controller) finalOpts.signal = controller.signal;
+      return fetch(url, finalOpts).finally(() => {
+        if (timer) clearTimeout(timer);
+      });
     }
 
     function loadAllUsers() {
@@ -1529,7 +1542,14 @@
     }
 
     function updateRealtimeBadge(online) {
-      isRealtimeOnline = Boolean(online);
+      const now = Date.now();
+      if (online) {
+        lastCloudSuccessTs = now;
+        isRealtimeOnline = true;
+      } else {
+        // Pertahankan status online selama 15 detik jika hanya 1 kali request lambat/timeout
+        isRealtimeOnline = (now - lastCloudSuccessTs) < 15000;
+      }
       const badge = document.getElementById('realtimeStatusBadge');
       if (!badge) return;
       badge.classList.toggle('offline', !isRealtimeOnline);
@@ -1595,31 +1615,43 @@
       return false;
     }
 
+    function parseNdjsonStreamText(rawText, onPacketCallback) {
+      let anyParsed = false;
+      String(rawText || '').split('\n').forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+        try {
+          const env = JSON.parse(trimmed);
+          if (env && env.event === 'message' && env.message) {
+            const inner = JSON.parse(env.message);
+            if (inner) {
+              onPacketCallback(inner);
+              anyParsed = true;
+            }
+          }
+        } catch (e) {}
+      });
+      return anyParsed;
+    }
+
     async function syncDirectoryFromCloud() {
       if (isDirectorySyncing) return;
       isDirectorySyncing = true;
       purgeExpiredInactiveAccounts();
       let changed = false;
       try {
-        const res = await fetch(`https://ntfy.sh/${CLOUD_DIRECTORY_TOPIC}/json?poll=1&since=168h`, { cache: 'no-store' });
-        if (!res.ok) {
-          updateRealtimeBadge(false);
-          return;
-        }
-        updateRealtimeBadge(true);
-        const raw = await res.text();
-        raw.split('\n').forEach(line => {
-          if (!line.trim()) return;
-          try {
-            const env = JSON.parse(line);
-            if (env && env.event === 'message' && env.message) {
-              const entry = JSON.parse(env.message);
-              if (processDirectoryEventObject(entry)) {
-                changed = true;
-              }
+        const res = await fetchWithTimeout(`${RELAY_BASE_URL}/${CLOUD_DIRECTORY_TOPIC}/json?poll=1&since=168h`, {}, 6500);
+        if (res.ok) {
+          updateRealtimeBadge(true);
+          const raw = await res.text();
+          parseNdjsonStreamText(raw, entry => {
+            if (processDirectoryEventObject(entry)) {
+              changed = true;
             }
-          } catch (e) {}
-        });
+          });
+        } else if (res.status !== 429) {
+          updateRealtimeBadge(false);
+        }
       } catch (e) {
         updateRealtimeBadge(false);
       } finally {
@@ -1651,12 +1683,11 @@
         localStorage.setItem(STORAGE_BUS_KEY, JSON.stringify({ nonce: Math.random(), payload: packet }));
       } catch (e) {}
       try {
-        const res = await fetch(`https://ntfy.sh/${CLOUD_DIRECTORY_TOPIC}`, {
+        const res = await fetchWithTimeout(`${RELAY_BASE_URL}/${CLOUD_DIRECTORY_TOPIC}`, {
           method: 'POST',
           body: JSON.stringify(packet),
-          headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-          cache: 'no-store'
-        });
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+        }, 6500);
         if (res.ok) updateRealtimeBadge(true);
       } catch (e) {
         updateRealtimeBadge(false);
@@ -1705,8 +1736,6 @@
       const uname = normalizeUsername(targetRaw);
       if (!uname) return null;
 
-      await syncDirectoryFromCloud();
-
       purgeExpiredInactiveAccounts();
       const users = loadAllUsers();
       if (users[uname]) {
@@ -1729,7 +1758,12 @@
         };
       }
 
-      const dir = loadLocalDirectory();
+      let dir = loadLocalDirectory();
+      if (!dir[uname]) {
+        await syncDirectoryFromCloud();
+        dir = loadLocalDirectory();
+      }
+
       const candidate = dir[uname] || null;
       if (candidate && isAccountExpiredByInactivity(candidate)) {
         delete dir[uname];
@@ -1895,7 +1929,8 @@
       if (user) {
         await announceAccountToCloud(user.username, user.displayName, user.status, user.passwordHash, true);
       }
-      await Promise.all([syncDirectoryFromCloud(), pollCloudMailboxOnce()]);
+      await syncDirectoryFromCloud();
+      await pollCloudMailboxOnce();
       refreshAllViews();
       showToast('Direktori & pesan tersinkronisasi');
     }
@@ -2028,7 +2063,7 @@
 
         let subtitle = `@${peer} • ${online ? 'Online' : 'Terdaftar'}`;
         if (lastMsg) {
-          const tickPrefix = lastMsg.dir === 'out' ? (lastMsg.read ? '✓✓ ' : '✓ ') : '';
+          const tickPrefix = lastMsg.dir === 'out' ? (lastMsg.read ? '✓✓ ' : (lastMsg.delivered ? '✓✓ ' : '✓ ')) : '';
           subtitle = tickPrefix + formatMessagePreviewText(lastMsg);
         }
         const timeStr = lastMsg ? lastMsg.time : (online ? 'Online' : '');
@@ -2168,12 +2203,6 @@
     async function openChatRoom(peerUsername) {
       const uname = normalizeUsername(peerUsername);
       if (!uname) return;
-
-      const found = await findRegisteredAccount(uname);
-      if (!found) {
-        showToast(`Nama akun @${uname} tidak ditemukan`);
-        return;
-      }
 
       activePeerUsername = uname;
       touchCurrentUserActivity();
@@ -2377,17 +2406,22 @@
 
     async function pushPacketToCloudMailbox(targetUsername, payloadObj) {
       const topic = getMailboxTopic(targetUsername);
-      if (!topic || topic === 'bubble_relay_anon') return;
+      if (!topic || topic === 'bubble_relay_anon') return false;
       try {
-        const res = await fetch(`https://ntfy.sh/${topic}`, {
+        const res = await fetchWithTimeout(`${RELAY_BASE_URL}/${topic}`, {
           method: 'POST',
           body: JSON.stringify(payloadObj),
-          headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-          cache: 'no-store'
-        });
-        if (res.ok) updateRealtimeBadge(true);
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+        }, 6500);
+        if (res.ok) {
+          updateRealtimeBadge(true);
+          return true;
+        }
+        if (res.status !== 429) updateRealtimeBadge(false);
+        return false;
       } catch (e) {
         updateRealtimeBadge(false);
+        return false;
       }
     }
 
@@ -2545,24 +2579,25 @@
     }
 
     async function pollCloudMailboxOnce() {
-      if (!activeUsername) return;
+      if (!activeUsername || isMailboxPolling) return;
+      isMailboxPolling = true;
       const topic = getMailboxTopic(activeUsername);
       try {
-        const res = await fetch(`https://ntfy.sh/${topic}/json?poll=1&since=24h`, { cache: 'no-store' });
-        if (!res.ok) return;
-        updateRealtimeBadge(true);
-        const rawText = await res.text();
-        rawText.split('\n').forEach(line => {
-          if (!line.trim()) return;
-          try {
-            const env = JSON.parse(line);
-            if (env && env.event === 'message' && env.message) {
-              const inner = JSON.parse(env.message);
-              handleIncomingCloudOrBusPayload(inner);
-            }
-          } catch (e) {}
-        });
-      } catch (e) {}
+        const res = await fetchWithTimeout(`${RELAY_BASE_URL}/${topic}/json?poll=1&since=24h`, {}, 6500);
+        if (res.ok) {
+          updateRealtimeBadge(true);
+          const rawText = await res.text();
+          parseNdjsonStreamText(rawText, inner => {
+            handleIncomingCloudOrBusPayload(inner);
+          });
+        } else if (res.status !== 429) {
+          updateRealtimeBadge(false);
+        }
+      } catch (e) {
+        updateRealtimeBadge(false);
+      } finally {
+        isMailboxPolling = false;
+      }
     }
 
     function connectCloudMailboxStream() {
@@ -2573,7 +2608,7 @@
       syncDirectoryFromCloud();
 
       try {
-        cloudEventSource = new EventSource(`https://ntfy.sh/${topic}/sse?since=10m`);
+        cloudEventSource = new EventSource(`${RELAY_BASE_URL}/${topic}/sse?since=10m`);
         cloudEventSource.onopen = () => updateRealtimeBadge(true);
         cloudEventSource.onmessage = (e) => {
           updateRealtimeBadge(true);
@@ -2588,7 +2623,7 @@
       } catch (e) {}
 
       try {
-        dirEventSource = new EventSource(`https://ntfy.sh/${CLOUD_DIRECTORY_TOPIC}/sse?since=10m`);
+        dirEventSource = new EventSource(`${RELAY_BASE_URL}/${CLOUD_DIRECTORY_TOPIC}/sse?since=10m`);
         dirEventSource.onopen = () => updateRealtimeBadge(true);
         dirEventSource.onmessage = (e) => {
           updateRealtimeBadge(true);
@@ -2602,10 +2637,18 @@
         };
       } catch (e) {}
 
-      cloudPollTimer = setInterval(() => {
-        pollCloudMailboxOnce();
-        syncDirectoryFromCloud();
-      }, 2000);
+      let pollTick = 0;
+      cloudPollTimer = setInterval(async () => {
+        if (!activeUsername) return;
+        pollTick += 1;
+        await pollCloudMailboxOnce();
+        if (pollTick % 3 === 0) {
+          await syncDirectoryFromCloud();
+        }
+        if (document.getElementById('viewGame')?.classList.contains('active')) {
+          renderChessUI();
+        }
+      }, 3000);
 
       if (presenceHeartbeatTimer) clearInterval(presenceHeartbeatTimer);
       presenceHeartbeatTimer = setInterval(() => {
@@ -2614,7 +2657,7 @@
           touchCurrentUserActivity();
           announceAccountToCloud(user.username, user.displayName, user.status, user.passwordHash, true);
         }
-      }, 20000);
+      }, 25000);
     }
 
     function disconnectCloudMailboxStream() {
@@ -2668,14 +2711,14 @@
       const serialized = JSON.stringify(payloadObj);
       const MAX_CHUNK_CHARS = 3800;
       if (serialized.length <= MAX_CHUNK_CHARS) {
-        await pushPacketToCloudMailbox(targetUsername, payloadObj);
-        return;
+        return await pushPacketToCloudMailbox(targetUsername, payloadObj);
       }
       const totalChunks = Math.ceil(serialized.length / MAX_CHUNK_CHARS);
       const groupId = payloadObj.id;
+      let allSent = true;
       for (let i = 0; i < totalChunks; i++) {
         const slice = serialized.slice(i * MAX_CHUNK_CHARS, (i + 1) * MAX_CHUNK_CHARS);
-        await pushPacketToCloudMailbox(targetUsername, {
+        const ok = await pushPacketToCloudMailbox(targetUsername, {
           type: 'wa_chunk',
           id: `${groupId}_part_${i}`,
           groupId: groupId,
@@ -2685,17 +2728,18 @@
           to: payloadObj.to,
           data: slice
         });
+        if (!ok) allSent = false;
       }
+      return allSent;
     }
 
     async function dispatchDirectMessage(peerUsername, text, attachmentObj) {
       const targetUname = normalizeUsername(peerUsername);
-      if (!activeUsername || !targetUname) return;
+      if (!activeUsername || !targetUname) return false;
 
-      const found = await findRegisteredAccount(targetUname);
-      if (!found) {
-        showToast(`Gagal kirim: Nama akun @${targetUname} belum terdaftar`);
-        return;
+      if (targetUname === activeUsername) {
+        showToast('Tidak bisa mengirim pesan ke nama akun sendiri');
+        return false;
       }
 
       const now = new Date();
@@ -2727,8 +2771,11 @@
         });
       } catch (storageErr) {
         showToast('Memori penyimpanan browser penuh untuk file terlalu besar');
-        return;
+        return false;
       }
+
+      if (activePeerUsername === targetUname) renderRoomMessages();
+      renderChatsList();
 
       const users = loadAllUsers();
       const senderProfile = users[activeUsername];
@@ -2760,10 +2807,16 @@
       try {
         localStorage.setItem(STORAGE_BUS_KEY, JSON.stringify({ nonce: Math.random(), payload }));
       } catch (e) {}
-      await sendCloudMessageWithChunking(targetUname, payload);
 
-      if (activePeerUsername === targetUname) renderRoomMessages();
-      renderChatsList();
+      let sentOk = await sendCloudMessageWithChunking(targetUname, payload);
+      if (!sentOk) {
+        await new Promise(r => setTimeout(r, 400));
+        sentOk = await sendCloudMessageWithChunking(targetUname, payload);
+      }
+      if (!sentOk) {
+        showToast('Koneksi relay terganggu, coba ketuk 🔄 atau kirim ulang');
+      }
+      return sentOk;
     }
 
     function sendMessageToPeer(e) {
@@ -3788,13 +3841,10 @@
 
     if (!chessSyncTimer) {
       chessSyncTimer = setInterval(async () => {
-        if (activeUsername) {
-          await pollCloudMailboxOnce();
-          if (document.getElementById('viewGame')?.classList.contains('active')) {
-            renderChessUI();
-          }
+        if (activeUsername && document.getElementById('viewGame')?.classList.contains('active')) {
+          renderChessUI();
         }
-      }, 1500);
+      }, 2500);
     }
 
     function escapeHtml(str) {
