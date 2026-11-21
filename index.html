@@ -1,0 +1,3840 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#000000" />
+  <title>Bubble</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-app: #000000;
+      --bg-surface: #0a0a0a;
+      --bg-elevated: #141414;
+      --bg-input: #1c1c1c;
+      --accent: #00a884;
+      --accent-hover: #008f70;
+      --bubble-out: #0b2e26;
+      --bubble-in: #141414;
+      --tick-read: #38bdf8;
+      --text-main: #f5f5f5;
+      --text-muted: #8e8e93;
+      --border: #222222;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg-app);
+      color: var(--text-main);
+      height: 100dvh;
+      display: flex;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .app-frame {
+      width: 100%;
+      max-width: 480px;
+      height: 100dvh;
+      background: var(--bg-app);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+    }
+
+    /* Layar Masuk / Daftar */
+    .auth-screen {
+      position: absolute;
+      inset: 0;
+      background: var(--bg-app);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 28px 20px 22px;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+
+    .auth-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .auth-top {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .wa-logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin: 0 auto 14px;
+    }
+
+    .auth-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      letter-spacing: -0.2px;
+    }
+
+    .auth-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .field-group {
+      text-align: left;
+      margin-bottom: 14px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .input-wa {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 13px;
+      color: var(--text-main);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .input-wa:focus {
+      border-color: var(--accent);
+    }
+
+    .btn-wa {
+      width: 100%;
+      background: var(--accent);
+      color: #000000;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-wa:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-wa:active:not(:disabled) {
+      background: var(--accent-hover);
+    }
+
+    .btn-wa-outline {
+      width: 100%;
+      background: var(--bg-elevated);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .btn-wa-danger {
+      width: 100%;
+      background: rgba(239, 68, 68, 0.12);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .auth-note {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.45;
+    }
+
+    /* Header Utama */
+    .main-header {
+      background: var(--bg-app);
+      padding: 12px 14px 0;
+      border-bottom: 1px solid var(--border);
+      z-index: 20;
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .brand-box {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.2px;
+    }
+
+    .brand-phone {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: rgba(0, 168, 132, 0.14);
+      color: var(--accent);
+      border: 1px solid rgba(0, 168, 132, 0.3);
+    }
+
+    .live-pill.offline {
+      background: rgba(245, 158, 11, 0.14);
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .header-btns {
+      display: flex;
+      gap: 6px;
+    }
+
+    .icon-action {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .icon-action:active {
+      background: var(--bg-input);
+    }
+
+    .wa-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      text-align: center;
+    }
+
+    .wa-tab {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 9px 6px;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      letter-spacing: 0.4px;
+    }
+
+    .wa-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    /* Tab Game & Duel Catur 1v1 */
+    .game-wrap {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .social-stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .social-stat-box {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 6px;
+      text-align: center;
+    }
+
+    .social-stat-num {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .social-stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .social-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin: 10px 0 6px;
+    }
+
+    .social-user-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      font-size: 12.5px;
+    }
+
+    .social-badge-friend {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--accent);
+      background: rgba(0, 168, 132, 0.14);
+      border: 1px solid rgba(0, 168, 132, 0.3);
+      padding: 2px 7px;
+      border-radius: 999px;
+      margin-left: 4px;
+    }
+
+    .online-tag-inline {
+      font-size: 10.5px;
+      color: var(--accent);
+      margin-left: 5px;
+      font-weight: 600;
+    }
+
+    .offline-tag-inline {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      margin-left: 5px;
+    }
+
+    .social-action-btn {
+      background: var(--accent);
+      color: #000000;
+      border: none;
+      border-radius: 7px;
+      padding: 6px 10px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .social-action-btn.secondary {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+    }
+
+    .game-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .game-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .game-title {
+      font-size: 15.5px;
+      font-weight: 700;
+    }
+
+    .game-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      background: rgba(0, 168, 132, 0.12);
+      border: 1px solid rgba(0, 168, 132, 0.28);
+      padding: 3px 8px;
+      border-radius: 999px;
+    }
+
+    .chess-status-bar {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12.5px;
+      color: var(--text-main);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .chess-player-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .chess-player-strip.active-turn {
+      border-color: var(--accent);
+      background: rgba(0, 168, 132, 0.08);
+    }
+
+    .chess-board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .chess-last-move {
+      box-shadow: inset 0 0 0 2px rgba(56, 189, 248, 0.55);
+    }
+
+    .chess-sq {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(20px, 6.2vw, 30px);
+      cursor: pointer;
+      position: relative;
+      line-height: 1;
+    }
+
+    .chess-sq.light {
+      background: #242424;
+      color: #f8fafc;
+    }
+
+    .chess-sq.dark {
+      background: #0d0d0d;
+      color: #e2e8f0;
+    }
+
+    .chess-sq.piece-white {
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+    }
+
+    .chess-sq.piece-black {
+      color: #94a3b8;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.95);
+    }
+
+    .chess-sq.selected {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+      background: rgba(0, 168, 132, 0.26);
+    }
+
+    .chess-sq.legal-move::after {
+      content: '';
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.85;
+    }
+
+    .chess-sq.legal-capture {
+      box-shadow: inset 0 0 0 2px #ef4444;
+      background: rgba(239, 68, 68, 0.22);
+    }
+
+    .chess-actions-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .invite-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-top: 8px;
+    }
+
+    .invite-btn-sm {
+      background: var(--accent);
+      color: #000000;
+      border: none;
+      border-radius: 8px;
+      padding: 7px 11px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .tab-pill {
+      background: var(--accent);
+      color: #000000;
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 999px;
+    }
+
+    /* Daftar Percakapan */
+    .page-view {
+      flex: 1;
+      overflow-y: auto;
+      display: none;
+      flex-direction: column;
+      background: var(--bg-app);
+    }
+
+    .page-view.active {
+      display: flex;
+    }
+
+    .search-bar-wrap {
+      padding: 10px 14px;
+      background: var(--bg-app);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .live-directory-strip {
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-surface);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+    }
+
+    .live-user-chip {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 11.5px;
+      color: var(--text-main);
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .live-user-chip:hover {
+      border-color: var(--accent);
+    }
+
+    .chat-list-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .chat-list-item:active {
+      background: var(--bg-surface);
+    }
+
+    .chat-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .online-badge {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--bg-app);
+      position: absolute;
+      bottom: 0;
+      right: 0;
+    }
+
+    .online-badge.away {
+      background: #64748b;
+    }
+
+    .chat-item-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .chat-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 3px;
+    }
+
+    .chat-item-name {
+      font-size: 14.5px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chat-item-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+      margin-left: 8px;
+    }
+
+    .chat-item-time.unread {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .chat-item-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chat-item-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .unread-badge {
+      background: var(--accent);
+      color: #000000;
+      font-size: 11px;
+      font-weight: 800;
+      min-width: 19px;
+      height: 19px;
+      padding: 0 6px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .empty-state {
+      padding: 48px 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .fab-btn {
+      position: absolute;
+      right: 16px;
+      bottom: 18px;
+      width: 50px;
+      height: 50px;
+      border-radius: 14px;
+      background: var(--accent);
+      color: #000000;
+      border: none;
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
+      z-index: 25;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Ruang Obrolan */
+    .room-drawer {
+      position: absolute;
+      inset: 0;
+      background: var(--bg-app);
+      z-index: 60;
+      display: none;
+      flex-direction: column;
+    }
+
+    .room-drawer.open {
+      display: flex;
+    }
+
+    .room-header {
+      background: var(--bg-app);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .room-peer-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .room-peer-name {
+      font-size: 15px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .room-peer-sub {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .room-peer-sub.typing {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .messages-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: var(--bg-app);
+    }
+
+    .msg-bubble-wrap {
+      display: flex;
+      flex-direction: column;
+      max-width: 82%;
+    }
+
+    .msg-bubble-wrap.sent {
+      align-self: flex-end;
+      align-items: flex-end;
+    }
+
+    .msg-bubble-wrap.received {
+      align-self: flex-start;
+      align-items: flex-start;
+    }
+
+    .msg-bubble {
+      padding: 8px 11px 6px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.42;
+      word-break: break-word;
+      cursor: pointer;
+    }
+
+    .msg-bubble-wrap.sent .msg-bubble {
+      background: var(--bubble-out);
+      border: 1px solid rgba(0, 168, 132, 0.28);
+      color: var(--text-main);
+    }
+
+    .msg-bubble-wrap.received .msg-bubble {
+      background: var(--bubble-in);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+    }
+
+    .quote-box {
+      background: rgba(0, 0, 0, 0.35);
+      border-left: 2px solid var(--accent);
+      padding: 5px 8px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 12px;
+    }
+
+    .quote-author {
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 2px;
+    }
+
+    .quote-snippet {
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 220px;
+    }
+
+    .msg-img {
+      max-width: 100%;
+      max-height: 280px;
+      border-radius: 8px;
+      display: block;
+      margin-bottom: 6px;
+      object-fit: contain;
+      background: var(--bg-surface);
+    }
+
+    .msg-media {
+      max-width: 100%;
+      max-height: 240px;
+      border-radius: 8px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .msg-audio {
+      width: 240px;
+      max-width: 100%;
+      height: 36px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .file-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      min-width: 205px;
+      max-width: 100%;
+    }
+
+    .file-card-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: var(--bg-elevated);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .file-card-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-card-name {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-card-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .file-dl-btn {
+      background: var(--accent);
+      color: #000000;
+      border: none;
+      border-radius: 7px;
+      padding: 5px 9px;
+      font-size: 11px;
+      font-weight: 700;
+      text-decoration: none;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .msg-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      margin-top: 3px;
+      font-size: 10.5px;
+      color: var(--text-muted);
+    }
+
+    .tick-read {
+      color: var(--tick-read);
+      font-weight: 700;
+    }
+
+    .reply-bar {
+      background: var(--bg-surface);
+      padding: 8px 12px;
+      border-top: 1px solid var(--border);
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .reply-bar.open {
+      display: flex;
+    }
+
+    .reply-bar-info {
+      border-left: 2px solid var(--accent);
+      padding-left: 8px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .reply-bar-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .reply-bar-text {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .composer-bar {
+      background: var(--bg-app);
+      padding: 8px 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-top: 1px solid var(--border);
+    }
+
+    .composer-input {
+      flex: 1;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 9px 14px;
+      color: var(--text-main);
+      font-size: 14px;
+      outline: none;
+    }
+
+    .composer-input:focus {
+      border-color: var(--accent);
+    }
+
+    .send-circle {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #000000;
+      border: none;
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .validation-alert {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #fca5a5;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12.5px;
+      line-height: 1.45;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    .validation-alert.show {
+      display: block;
+    }
+
+    .search-result-box {
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    .search-result-box.show {
+      display: block;
+    }
+
+    .found-account-card {
+      background: var(--bg-elevated);
+      border: 1px solid rgba(0, 168, 132, 0.4);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    /* Modal */
+    .sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 120;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .sheet-backdrop.open {
+      display: flex;
+    }
+
+    .sheet-card {
+      width: 100%;
+      max-width: 480px;
+      background: var(--bg-surface);
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      padding: 16px 18px 22px;
+      border-top: 1px solid var(--border);
+      max-height: 88dvh;
+      overflow-y: auto;
+    }
+
+    .sheet-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .sheet-title {
+      font-size: 15.5px;
+      font-weight: 700;
+    }
+
+    .toast-banner {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-16px);
+      background: var(--bg-elevated);
+      color: var(--text-main);
+      padding: 9px 15px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 300;
+      max-width: 90vw;
+      text-align: center;
+    }
+
+    .toast-banner.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div id="toast" class="toast-banner">Siap</div>
+
+  <div class="app-frame">
+    <!-- Layar Daftar / Masuk Nama Akun Unik + Kata Sandi -->
+    <section id="authScreen" class="auth-screen">
+      <div class="auth-top">
+        <div class="wa-logo">💬</div>
+        <h1 class="auth-title">Bubble</h1>
+        <p class="auth-sub">Pesan instan &amp; duel catur 1v1 realtime lintas perangkat. Setiap nama akun unik dilindungi kata sandi.</p>
+
+        <div id="authErrorAlert" class="validation-alert"></div>
+
+        <div class="field-group">
+          <label class="field-label">Nama Akun</label>
+          <input type="text" id="authUsernameInput" class="input-wa" placeholder="Masukkan nama akun (contoh: yeyu)" autocomplete="username" oninput="hideAuthError()" />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Kata Sandi</label>
+          <div style="position:relative;">
+            <input type="password" id="authPasswordInput" class="input-wa" style="padding-right:44px;" placeholder="Minimal 4 karakter" autocomplete="current-password" oninput="hideAuthError()" onkeydown="if(event.key==='Enter') handleAccountAuthSubmit()" />
+            <button type="button" id="togglePwdBtn" onclick="toggleAuthPasswordVisibility()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);font-size:15px;cursor:pointer;">👁️</button>
+          </div>
+        </div>
+
+        <button type="button" id="authPrimaryBtn" class="btn-wa" onclick="handleAccountAuthSubmit()">Daftar / Masuk Akun</button>
+      </div>
+      <p class="auth-note">
+        Jika nama akun belum ada, akun baru otomatis dibuat dan diumumkan ke direktori realtime. Jika sudah ada, masukkan kata sandi yang sesuai untuk masuk.
+      </p>
+    </section>
+
+    <!-- Header Utama -->
+    <header class="main-header">
+      <div class="header-row">
+        <div class="brand-box">
+          <span class="brand-title">Bubble</span>
+          <span id="myAccountHeader" class="brand-phone">
+            <span id="myAccountText">@akun</span>
+            <span id="realtimeStatusBadge" class="live-pill offline"><span class="live-dot"></span>Menghubungkan</span>
+          </span>
+        </div>
+        <div class="header-btns">
+          <button type="button" class="icon-action" title="Segarkan Direktori & Pesan Realtime" onclick="manualRealtimeRefresh()">🔄</button>
+          <button type="button" class="icon-action" title="Cari Nama Akun & Chat" onclick="openNewChatModal()">➕</button>
+          <button type="button" class="icon-action" title="Profil & Kata Sandi" onclick="openProfileModal()">⚙️</button>
+        </div>
+      </div>
+
+      <div class="wa-tabs">
+        <button type="button" id="tabChats" class="wa-tab active" onclick="switchMainTab('chats')">
+          CHAT <span id="totalUnreadPill" class="tab-pill" style="display:none;">0</span>
+        </button>
+        <button type="button" id="tabGame" class="wa-tab" onclick="switchMainTab('game')">
+          GAME <span id="gameInvitePill" class="tab-pill" style="display:none;">0</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Tab 1: Daftar Chat -->
+    <div id="viewChats" class="page-view active">
+      <div class="search-bar-wrap">
+        <input type="search" id="chatSearchInput" class="input-wa" placeholder="Cari nama akun terdaftar atau chat..." oninput="handleChatsSearchInput()" />
+      </div>
+      <div id="liveDirectoryStrip" class="live-directory-strip" style="display:none;"></div>
+      <div id="chatsListContainer"></div>
+      <button type="button" class="fab-btn" title="Chat ke Nama Akun" onclick="openNewChatModal()">💬</button>
+    </div>
+
+    <!-- Tab 2: Game Duel Catur 1v1 -->
+    <div id="viewGame" class="page-view">
+      <div class="game-wrap">
+        <div class="game-card">
+          <div class="game-card-head">
+            <div>
+              <div class="game-title">Catur Duel 2 HP (Teman Saja)</div>
+              <div id="chessMatchSubtitle" class="brand-phone">Wajib terhubung 2 HP • Tantang teman yang saling mengikuti</div>
+            </div>
+            <span class="game-badge">2 HP REALTIME</span>
+          </div>
+
+          <div class="social-stats-row">
+            <div class="social-stat-box">
+              <div id="statFriendsCount" class="social-stat-num">0</div>
+              <div class="social-stat-label">Teman</div>
+            </div>
+            <div class="social-stat-box">
+              <div id="statFollowingCount" class="social-stat-num">0</div>
+              <div class="social-stat-label">Mengikuti</div>
+            </div>
+            <div class="social-stat-box">
+              <div id="statFollowersCount" class="social-stat-num">0</div>
+              <div class="social-stat-label">Pengikut</div>
+            </div>
+          </div>
+
+          <div class="field-group" style="margin-bottom:8px;">
+            <label class="field-label">Cari &amp; Ikuti Nama Akun Realtime (Saling mengikuti = Teman)</label>
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="followTargetInput" class="input-wa" placeholder="Ketik nama akun, misal: yeyu" oninput="renderFollowSuggestions()" onkeydown="if(event.key==='Enter') followAccountFromInput()" />
+              <button type="button" class="btn-wa" style="width:auto;padding:0 14px;white-space:nowrap;" onclick="followAccountFromInput()">Ikuti</button>
+            </div>
+            <div id="followSearchSuggestions" style="margin-top:6px;"></div>
+          </div>
+
+          <div class="field-group" style="margin-bottom:10px;">
+            <label class="field-label">Pilih Teman (Saling Mengikuti) untuk Ditantang</label>
+            <div style="display:flex;gap:8px;">
+              <select id="chessFriendSelect" class="input-wa" style="flex:1;"></select>
+              <button type="button" class="btn-wa" style="width:auto;padding:0 14px;white-space:nowrap;" onclick="sendChessChallenge()">Tantang</button>
+            </div>
+          </div>
+
+          <div id="chessIncomingInvites"></div>
+          <div id="socialListsContainer"></div>
+        </div>
+
+        <div class="game-card">
+          <div class="chess-status-bar">
+            <span id="chessTurnText">Giliran: Putih</span>
+            <span id="chessSideInfo" style="color:var(--accent);font-size:11.5px;font-weight:700;">Siap Duel 2 HP</span>
+          </div>
+
+          <div id="chessTopStrip" class="chess-player-strip">
+            <span id="chessTopName">Lawan (Hitam)</span>
+            <span id="chessTopBadge" style="color:var(--text-muted);">Menunggu</span>
+          </div>
+
+          <div id="chessBoard" class="chess-board"></div>
+
+          <div id="chessBottomStrip" class="chess-player-strip" style="margin-top:8px;margin-bottom:0;">
+            <span id="chessBottomName">Kamu (Putih)</span>
+            <span id="chessLastMoveText" style="color:var(--text-muted);font-size:11.5px;">Belum ada langkah</span>
+          </div>
+
+          <div class="chess-actions-row">
+            <button type="button" class="btn-wa-outline" style="margin-top:0;" onclick="resetChessGame(true)">Catur Baru</button>
+            <button type="button" class="btn-wa-danger" style="margin-top:0;" onclick="resignChessMatch()">Menyerah</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ruang Obrolan 1-on-1 -->
+    <section id="roomDrawer" class="room-drawer">
+      <div class="room-header">
+        <button type="button" class="icon-action" onclick="closeChatRoom()">←</button>
+        <div class="chat-avatar" id="roomPeerAvatar" style="width:38px;height:38px;font-size:15px;">K</div>
+        <div class="room-peer-meta">
+          <div id="roomPeerName" class="room-peer-name">Kontak</div>
+          <div id="roomPeerSub" class="room-peer-sub">online</div>
+        </div>
+        <button type="button" class="icon-action" title="Bersihkan Chat" onclick="clearCurrentThread()">🗑️</button>
+      </div>
+
+      <div id="messagesContainer" class="messages-scroll"></div>
+
+      <!-- Bar Balas Pesan (Quote) -->
+      <div id="replyBar" class="reply-bar">
+        <div class="reply-bar-info">
+          <div id="replyBarTitle" class="reply-bar-title">Membalas</div>
+          <div id="replyBarText" class="reply-bar-text">...</div>
+        </div>
+        <button type="button" class="icon-action" style="width:30px;height:30px;font-size:13px;" onclick="cancelReplyQuote()">✕</button>
+      </div>
+
+      <form class="composer-bar" onsubmit="sendMessageToPeer(event)">
+        <input type="file" id="chatFileInput" style="display:none" onchange="handleSendOriginalFile(event)" />
+        <button type="button" class="icon-action" title="Kirim File, Foto, Gambar, atau Dokumen Asli" onclick="document.getElementById('chatFileInput').click()">📎</button>
+        <input type="text" id="messageTextInput" class="composer-input" placeholder="Ketik pesan" autocomplete="off" oninput="notifyPeerTyping()" />
+        <button type="submit" class="send-circle">➤</button>
+      </form>
+    </section>
+
+    <!-- Modal Cari Nama Akun Tujuan & Mulai Chat -->
+    <div id="contactModal" class="sheet-backdrop" onclick="if(event.target===this) closeContactModal()">
+      <div class="sheet-card">
+        <div class="sheet-top">
+          <h3 id="contactModalTitle" class="sheet-title">Cari Nama Akun &amp; Mulai Chat</h3>
+          <button type="button" class="icon-action" onclick="closeContactModal()">✕</button>
+        </div>
+
+        <div id="unregisteredAlert" class="validation-alert">
+          <strong>Nama akun tidak ditemukan!</strong> Pastikan akun tersebut sudah membuka Bubble dan mendaftar. Ketuk <em>Cari Akun</em> untuk menyinkronkan direktori online terbaru.
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Cari Nama Akun Tujuan (contoh: yeyu)</label>
+          <input type="text" id="contactUsernameInput" class="input-wa" placeholder="Ketik nama akun, misal: yeyu" oninput="handleModalUsernameSearch()" onkeydown="if(event.key==='Enter') verifyRegisteredAndOpenChat()" />
+        </div>
+
+        <div id="modalSearchMatches" class="search-result-box"></div>
+
+        <button type="button" id="verifyAndChatBtn" class="btn-wa" onclick="verifyRegisteredAndOpenChat()">Cari Akun &amp; Mulai Chat</button>
+      </div>
+    </div>
+
+    <!-- Modal Aksi Pesan (Balas / Salin / Hapus) -->
+    <div id="msgActionModal" class="sheet-backdrop" onclick="if(event.target===this) closeMsgActionModal()">
+      <div class="sheet-card">
+        <div class="sheet-top">
+          <h3 class="sheet-title">Opsi Pesan</h3>
+          <button type="button" class="icon-action" onclick="closeMsgActionModal()">✕</button>
+        </div>
+        <button type="button" class="btn-wa" onclick="triggerReplySelectedMsg()">↩️ Balas Pesan Ini</button>
+        <button type="button" class="btn-wa-outline" onclick="copySelectedMsgText()">📋 Salin Teks</button>
+        <button type="button" class="btn-wa-danger" onclick="deleteSelectedMsgForMe()">🗑️ Hapus Pesan untuk Saya</button>
+      </div>
+    </div>
+
+    <!-- Modal Profil, Ubah Sandi & Keluar Akun -->
+    <div id="profileModal" class="sheet-backdrop" onclick="if(event.target===this) closeProfileModal()">
+      <div class="sheet-card">
+        <div class="sheet-top">
+          <h3 class="sheet-title">Profil &amp; Keamanan Akun</h3>
+          <button type="button" class="icon-action" onclick="closeProfileModal()">✕</button>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Nama Akun Unik Saya</label>
+          <input type="text" id="profileUsernameReadonly" class="input-wa" readonly />
+          <div id="profileRetentionInfo" style="margin-top:8px;padding:10px 12px;border-radius:10px;background:rgba(0,168,132,0.1);border:1px solid rgba(0,168,132,0.28);font-size:12px;color:#cbd5e1;line-height:1.45;"></div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Nama Tampilan</label>
+          <input type="text" id="profileDisplayNameInput" class="input-wa" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Ubah Kata Sandi (kosongkan jika tidak diubah)</label>
+          <input type="password" id="profileNewPasswordInput" class="input-wa" placeholder="Kata sandi baru minimal 4 karakter" />
+        </div>
+        <button type="button" class="btn-wa" onclick="saveProfileChanges()">Simpan Perubahan</button>
+        <button type="button" class="btn-wa-danger" onclick="logoutAccountSession()">Keluar / Ganti Akun</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_USERS_KEY = 'wa_username_pwd_users_v2';
+    const STORAGE_DIRECTORY_KEY = 'wa_username_pwd_dir_v2';
+    const STORAGE_SESSION_KEY = 'wa_username_pwd_session_v2';
+    const STORAGE_BUS_KEY = 'wa_username_pwd_bus_v2';
+    const CLOUD_DIRECTORY_TOPIC = 'bubble_global_dir_v2';
+    const INACTIVITY_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+    const ONLINE_WINDOW_MS = 45 * 1000;
+
+    let activeUsername = '';
+    let activePeerUsername = '';
+    let realtimeChannel = null;
+    let cloudEventSource = null;
+    let dirEventSource = null;
+    let cloudPollTimer = null;
+    let presenceHeartbeatTimer = null;
+    let isDirectorySyncing = false;
+    let isRealtimeOnline = false;
+    let typingCooldown = 0;
+    let peerTypingTimeout = null;
+    let activeReplyQuote = null;
+    let selectedMsgIdForAction = null;
+
+    const seenCloudPacketIds = new Set();
+    const pendingFileChunks = {};
+
+    function normalizeUsername(raw) {
+      return String(raw || '')
+        .trim()
+        .toLowerCase()
+        .replace(/^@+/, '')
+        .replace(/[^a-z0-9._]/g, '');
+    }
+
+    function validateUsernameFormat(raw) {
+      const cleaned = normalizeUsername(raw);
+      if (!cleaned) {
+        return { valid: false, reason: 'Nama akun wajib diisi' };
+      }
+      if (cleaned.length < 2 || cleaned.length > 24) {
+        return { valid: false, reason: 'Nama akun harus 2-24 karakter (huruf, angka, titik, atau _)' };
+      }
+      if (!/^[a-z0-9][a-z0-9._]*[a-z0-9]$/.test(cleaned) && cleaned.length >= 2) {
+        return { valid: false, reason: 'Nama akun harus diawali dan diakhiri huruf atau angka' };
+      }
+      return { valid: true, username: cleaned };
+    }
+
+    async function hashPassword(username, rawPassword) {
+      const inputStr = `wa_salt:${normalizeUsername(username)}:${String(rawPassword || '')}`;
+      if (window.crypto && window.crypto.subtle && typeof TextEncoder !== 'undefined') {
+        const data = new TextEncoder().encode(inputStr);
+        const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+      let h = 2166136261;
+      for (let i = 0; i < inputStr.length; i++) {
+        h ^= inputStr.charCodeAt(i);
+        h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+      }
+      return 'h_' + (h >>> 0).toString(16);
+    }
+
+    function loadAllUsers() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_USERS_KEY) || '{}');
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function saveAllUsers(usersObj) {
+      try {
+        localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(usersObj));
+      } catch (e) {}
+    }
+
+    function loadLocalDirectory() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_DIRECTORY_KEY) || '{}');
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function saveLocalDirectory(dirObj) {
+      try {
+        localStorage.setItem(STORAGE_DIRECTORY_KEY, JSON.stringify(dirObj));
+      } catch (e) {}
+    }
+
+    function removeAccountFromLocalStores(rawUsername) {
+      const uname = normalizeUsername(rawUsername);
+      if (!uname) return;
+      const users = loadAllUsers();
+      if (users[uname]) {
+        delete users[uname];
+        saveAllUsers(users);
+      }
+      const dir = loadLocalDirectory();
+      if (dir[uname]) {
+        delete dir[uname];
+        saveLocalDirectory(dir);
+      }
+    }
+
+    function getAccountLastActive(entryOrUser) {
+      if (!entryOrUser) return 0;
+      return Number(entryOrUser.lastActiveAt || entryOrUser.updatedAt || entryOrUser.ts || 0);
+    }
+
+    function isUserOnlineNow(username, nowMs = Date.now()) {
+      const uname = normalizeUsername(username);
+      if (!uname) return false;
+      if (uname === activeUsername && isRealtimeOnline) return true;
+      const dir = loadLocalDirectory()[uname];
+      const users = loadAllUsers()[uname];
+      const lastTs = Math.max(getAccountLastActive(dir), getAccountLastActive(users));
+      return lastTs > 0 && (nowMs - lastTs) <= ONLINE_WINDOW_MS;
+    }
+
+    function isAccountExpiredByInactivity(entryOrUser, nowMs = Date.now()) {
+      const lastActive = getAccountLastActive(entryOrUser);
+      if (!lastActive) return false;
+      return (nowMs - lastActive) > INACTIVITY_TTL_MS;
+    }
+
+    function purgeExpiredInactiveAccounts(nowMs = Date.now()) {
+      const users = loadAllUsers();
+      let usersChanged = false;
+      Object.keys(users).forEach(uname => {
+        if (isAccountExpiredByInactivity(users[uname], nowMs)) {
+          delete users[uname];
+          usersChanged = true;
+        }
+      });
+      if (usersChanged) saveAllUsers(users);
+
+      const dir = loadLocalDirectory();
+      let dirChanged = false;
+      Object.keys(dir).forEach(uname => {
+        if (isAccountExpiredByInactivity(dir[uname], nowMs)) {
+          delete dir[uname];
+          dirChanged = true;
+        }
+      });
+      if (dirChanged) saveLocalDirectory(dir);
+    }
+
+    function updateRealtimeBadge(online) {
+      isRealtimeOnline = Boolean(online);
+      const badge = document.getElementById('realtimeStatusBadge');
+      if (!badge) return;
+      badge.classList.toggle('offline', !isRealtimeOnline);
+      badge.innerHTML = `<span class="live-dot"></span>${isRealtimeOnline ? 'Online Realtime' : 'Sinkron Ulang'}`;
+    }
+
+    function touchCurrentUserActivity() {
+      if (!activeUsername) return;
+      const now = Date.now();
+      const updated = updateCurrentUser(user => {
+        user.lastActiveAt = now;
+      });
+      if (updated) {
+        registerAccountInLocalDirectory(
+          updated.username,
+          updated.displayName,
+          updated.status,
+          updated.passwordHash,
+          now
+        );
+      }
+    }
+
+    function registerAccountInLocalDirectory(username, displayName, status, passwordHash, activityTs) {
+      const uname = normalizeUsername(username);
+      if (!uname) return;
+      const ts = Number(activityTs || Date.now());
+      if (isAccountExpiredByInactivity({ lastActiveAt: ts })) return;
+      const dir = loadLocalDirectory();
+      const existing = dir[uname];
+      const prevTs = getAccountLastActive(existing);
+      const effectiveTs = Math.max(prevTs, ts);
+      const isFreshPresence = ts >= prevTs;
+      dir[uname] = {
+        username: uname,
+        displayName: (isFreshPresence && displayName && displayName.trim()) || (existing && existing.displayName) || displayName || uname,
+        status: (isFreshPresence && status && status.trim()) || (existing && existing.status) || status || 'Ada',
+        passwordHash: passwordHash || (existing && existing.passwordHash) || '',
+        lastActiveAt: effectiveTs,
+        updatedAt: effectiveTs
+      };
+      saveLocalDirectory(dir);
+    }
+
+    function processDirectoryEventObject(entry) {
+      if (!entry || !entry.username) return false;
+      const uname = normalizeUsername(entry.username);
+      if (!uname) return false;
+      if (entry.type === 'wa_account_del') {
+        removeAccountFromLocalStores(uname);
+        return true;
+      }
+      if (entry.type === 'wa_account_reg' || entry.type === 'wa_presence') {
+        registerAccountInLocalDirectory(
+          uname,
+          entry.displayName,
+          entry.status,
+          entry.passwordHash,
+          entry.lastActiveAt || entry.ts || entry.updatedAt || Date.now()
+        );
+        return true;
+      }
+      return false;
+    }
+
+    async function syncDirectoryFromCloud() {
+      if (isDirectorySyncing) return;
+      isDirectorySyncing = true;
+      purgeExpiredInactiveAccounts();
+      let changed = false;
+      try {
+        const res = await fetch(`https://ntfy.sh/${CLOUD_DIRECTORY_TOPIC}/json?poll=1&since=168h`, { cache: 'no-store' });
+        if (!res.ok) {
+          updateRealtimeBadge(false);
+          return;
+        }
+        updateRealtimeBadge(true);
+        const raw = await res.text();
+        raw.split('\n').forEach(line => {
+          if (!line.trim()) return;
+          try {
+            const env = JSON.parse(line);
+            if (env && env.event === 'message' && env.message) {
+              const entry = JSON.parse(env.message);
+              if (processDirectoryEventObject(entry)) {
+                changed = true;
+              }
+            }
+          } catch (e) {}
+        });
+      } catch (e) {
+        updateRealtimeBadge(false);
+      } finally {
+        isDirectorySyncing = false;
+        if (changed && activeUsername) {
+          refreshAllViews();
+        }
+      }
+    }
+
+    async function announceAccountToCloud(username, displayName, status, passwordHash, isHeartbeat = false) {
+      const uname = normalizeUsername(username);
+      if (!uname) return;
+      const nowTs = Date.now();
+      registerAccountInLocalDirectory(uname, displayName, status, passwordHash, nowTs);
+      const packet = {
+        type: isHeartbeat ? 'wa_presence' : 'wa_account_reg',
+        username: uname,
+        displayName: displayName || uname,
+        status: status || 'Ada',
+        passwordHash: passwordHash || '',
+        lastActiveAt: nowTs,
+        ts: nowTs
+      };
+      if (realtimeChannel) {
+        try { realtimeChannel.postMessage(packet); } catch (e) {}
+      }
+      try {
+        localStorage.setItem(STORAGE_BUS_KEY, JSON.stringify({ nonce: Math.random(), payload: packet }));
+      } catch (e) {}
+      try {
+        const res = await fetch(`https://ntfy.sh/${CLOUD_DIRECTORY_TOPIC}`, {
+          method: 'POST',
+          body: JSON.stringify(packet),
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+          cache: 'no-store'
+        });
+        if (res.ok) updateRealtimeBadge(true);
+      } catch (e) {
+        updateRealtimeBadge(false);
+      }
+    }
+
+    function getAllKnownAccounts() {
+      purgeExpiredInactiveAccounts();
+      const map = new Map();
+      const dir = loadLocalDirectory();
+      const users = loadAllUsers();
+
+      Object.keys(dir).forEach(uname => {
+        const clean = normalizeUsername(uname);
+        if (!clean || isAccountExpiredByInactivity(dir[uname])) return;
+        map.set(clean, {
+          username: clean,
+          displayName: dir[uname].displayName || clean,
+          status: dir[uname].status || 'Ada',
+          lastActiveAt: getAccountLastActive(dir[uname])
+        });
+      });
+
+      Object.keys(users).forEach(uname => {
+        const clean = normalizeUsername(uname);
+        if (!clean || isAccountExpiredByInactivity(users[uname])) return;
+        const prev = map.get(clean);
+        const uTs = getAccountLastActive(users[uname]);
+        map.set(clean, {
+          username: clean,
+          displayName: users[uname].displayName || (prev && prev.displayName) || clean,
+          status: users[uname].status || (prev && prev.status) || 'Ada',
+          lastActiveAt: Math.max(uTs, (prev && prev.lastActiveAt) || 0)
+        });
+      });
+
+      return Array.from(map.values()).sort((a, b) => {
+        const aOn = isUserOnlineNow(a.username) ? 1 : 0;
+        const bOn = isUserOnlineNow(b.username) ? 1 : 0;
+        if (aOn !== bOn) return bOn - aOn;
+        return (b.lastActiveAt || 0) - (a.lastActiveAt || 0);
+      });
+    }
+
+    async function findRegisteredAccount(targetRaw) {
+      const uname = normalizeUsername(targetRaw);
+      if (!uname) return null;
+
+      await syncDirectoryFromCloud();
+
+      purgeExpiredInactiveAccounts();
+      const users = loadAllUsers();
+      if (users[uname]) {
+        if (isAccountExpiredByInactivity(users[uname])) {
+          delete users[uname];
+          saveAllUsers(users);
+          return null;
+        }
+        registerAccountInLocalDirectory(
+          uname,
+          users[uname].displayName,
+          users[uname].status,
+          users[uname].passwordHash,
+          getAccountLastActive(users[uname])
+        );
+        return {
+          username: uname,
+          displayName: users[uname].displayName || uname,
+          status: users[uname].status || 'Ada'
+        };
+      }
+
+      const dir = loadLocalDirectory();
+      const candidate = dir[uname] || null;
+      if (candidate && isAccountExpiredByInactivity(candidate)) {
+        delete dir[uname];
+        saveLocalDirectory(dir);
+        return null;
+      }
+      return candidate;
+    }
+
+    function getCurrentUser() {
+      if (!activeUsername) return null;
+      const users = loadAllUsers();
+      return users[activeUsername] || null;
+    }
+
+    function updateCurrentUser(mutatorFn) {
+      if (!activeUsername) return null;
+      const users = loadAllUsers();
+      if (!users[activeUsername]) return null;
+      mutatorFn(users[activeUsername]);
+      users[activeUsername].updatedAt = Date.now();
+      saveAllUsers(users);
+      return users[activeUsername];
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2500);
+    }
+
+    function showAuthError(htmlMsg) {
+      const box = document.getElementById('authErrorAlert');
+      if (!box) return;
+      box.innerHTML = htmlMsg;
+      box.classList.add('show');
+    }
+
+    function hideAuthError() {
+      const box = document.getElementById('authErrorAlert');
+      if (box) box.classList.remove('show');
+    }
+
+    function toggleAuthPasswordVisibility() {
+      const inp = document.getElementById('authPasswordInput');
+      if (!inp) return;
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+    }
+
+    async function handleAccountAuthSubmit() {
+      const rawUname = document.getElementById('authUsernameInput').value;
+      const rawPwd = document.getElementById('authPasswordInput').value;
+      const btn = document.getElementById('authPrimaryBtn');
+      hideAuthError();
+
+      const check = validateUsernameFormat(rawUname);
+      if (!check.valid) {
+        showToast(check.reason);
+        return;
+      }
+
+      if (!rawPwd || rawPwd.length < 4) {
+        showToast('Kata sandi wajib diisi minimal 4 karakter');
+        return;
+      }
+
+      const uname = check.username;
+      btn.disabled = true;
+      btn.textContent = 'Menyinkronkan akun realtime...';
+
+      await syncDirectoryFromCloud();
+      const enteredHash = await hashPassword(uname, rawPwd);
+      const users = loadAllUsers();
+      const dir = loadLocalDirectory();
+      const existingDir = dir[uname];
+      const existingLocal = users[uname];
+
+      btn.disabled = false;
+      btn.textContent = 'Daftar / Masuk Akun';
+
+      const dirExpired = existingDir && isAccountExpiredByInactivity(existingDir);
+      const localExpired = existingLocal && isAccountExpiredByInactivity(existingLocal);
+      if (dirExpired || localExpired) {
+        if (existingDir) delete dir[uname];
+        if (existingLocal) delete users[uname];
+        saveLocalDirectory(dir);
+        saveAllUsers(users);
+      }
+
+      const activeDirEntry = !dirExpired ? existingDir : null;
+      const activeLocalEntry = !localExpired ? existingLocal : null;
+      const knownHash = (activeDirEntry && activeDirEntry.passwordHash) || (activeLocalEntry && activeLocalEntry.passwordHash) || '';
+
+      if (knownHash) {
+        if (enteredHash !== knownHash) {
+          showAuthError(`<strong>Nama akun @${escapeHtml(uname)} sudah terdaftar!</strong><br>Jika ini akun milikmu, masukkan kata sandi yang benar. Jika membuat akun baru, gunakan nama akun unik yang lain.`);
+          showToast('Kata sandi salah atau nama akun sudah dipakai');
+          return;
+        }
+      }
+
+      const isNewAccount = !knownHash;
+      const nowLoginTs = Date.now();
+      const finalDisplayName =
+        (activeLocalEntry && activeLocalEntry.displayName) ||
+        (activeDirEntry && activeDirEntry.displayName) ||
+        uname;
+
+      if (!users[uname]) {
+        users[uname] = {
+          username: uname,
+          displayName: finalDisplayName,
+          status: (activeDirEntry && activeDirEntry.status) || 'Ada',
+          passwordHash: enteredHash,
+          lastActiveAt: nowLoginTs,
+          updatedAt: nowLoginTs,
+          contacts: [],
+          following: [],
+          followers: [],
+          chats: {},
+          unread: {}
+        };
+      } else {
+        users[uname].passwordHash = enteredHash;
+        users[uname].lastActiveAt = nowLoginTs;
+        if (!users[uname].unread) users[uname].unread = {};
+        if (!users[uname].chats) users[uname].chats = {};
+        if (!Array.isArray(users[uname].following)) users[uname].following = [];
+        if (!Array.isArray(users[uname].followers)) users[uname].followers = [];
+      }
+      saveAllUsers(users);
+
+      activeUsername = uname;
+      localStorage.setItem(STORAGE_SESSION_KEY, uname);
+      await announceAccountToCloud(uname, users[uname].displayName, users[uname].status, users[uname].passwordHash, false);
+
+      document.getElementById('authPasswordInput').value = '';
+      document.getElementById('authScreen').classList.add('hidden');
+      setupRealtimeListeners();
+      refreshAllViews();
+      showToast(isNewAccount ? `Akun baru @${uname} aktif & realtime` : `Berhasil masuk sebagai @${uname}`);
+    }
+
+    function logoutAccountSession() {
+      closeProfileModal();
+      closeChatRoom();
+      activeUsername = '';
+      activePeerUsername = '';
+      disconnectCloudMailboxStream();
+      if (presenceHeartbeatTimer) {
+        clearInterval(presenceHeartbeatTimer);
+        presenceHeartbeatTimer = null;
+      }
+      localStorage.removeItem(STORAGE_SESSION_KEY);
+      document.getElementById('authScreen').classList.remove('hidden');
+      showToast('Keluar dari nama akun');
+    }
+
+    async function manualRealtimeRefresh() {
+      showToast('Menyinkronkan akun & pesan realtime...');
+      const user = getCurrentUser();
+      if (user) {
+        await announceAccountToCloud(user.username, user.displayName, user.status, user.passwordHash, true);
+      }
+      await Promise.all([syncDirectoryFromCloud(), pollCloudMailboxOnce()]);
+      refreshAllViews();
+      showToast('Direktori & pesan tersinkronisasi');
+    }
+
+    function refreshAllViews() {
+      const user = getCurrentUser();
+      if (!user) return;
+      const accText = document.getElementById('myAccountText');
+      if (accText) accText.textContent = `${user.displayName} • @${user.username}`;
+      renderLiveDirectoryStrip();
+      renderChatsList();
+      if (document.getElementById('viewGame')?.classList.contains('active')) {
+        renderChessUI();
+      }
+      if (activePeerUsername) {
+        const subEl = document.getElementById('roomPeerSub');
+        if (subEl && !subEl.classList.contains('typing')) {
+          subEl.textContent = `${isUserOnlineNow(activePeerUsername) ? 'online' : 'terhubung'} • @${activePeerUsername}`;
+        }
+      }
+    }
+
+    function renderLiveDirectoryStrip() {
+      const strip = document.getElementById('liveDirectoryStrip');
+      if (!strip || !activeUsername) return;
+      const filterQ = normalizeUsername(document.getElementById('chatSearchInput')?.value || '');
+      const peers = getAllKnownAccounts().filter(acc => {
+        if (acc.username === activeUsername) return false;
+        if (!filterQ) return true;
+        return acc.username.includes(filterQ) || String(acc.displayName || '').toLowerCase().includes(filterQ);
+      });
+
+      if (peers.length === 0) {
+        strip.style.display = 'none';
+        strip.innerHTML = '';
+        return;
+      }
+
+      strip.style.display = 'flex';
+      strip.innerHTML = '';
+
+      const label = document.createElement('span');
+      label.style.cssText = 'font-size:11px;color:var(--text-muted);font-weight:700;flex-shrink:0;';
+      label.textContent = 'Akun Aktif:';
+      strip.appendChild(label);
+
+      peers.slice(0, 12).forEach(acc => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'live-user-chip';
+        const online = isUserOnlineNow(acc.username);
+        chip.innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:${online ? 'var(--accent)' : '#64748b'};display:inline-block;"></span><span>@${escapeHtml(acc.username)}</span>`;
+        chip.onclick = () => openChatRoom(acc.username);
+        strip.appendChild(chip);
+      });
+    }
+
+    function handleChatsSearchInput() {
+      renderLiveDirectoryStrip();
+      renderChatsList();
+    }
+
+    function getContactDisplayName(peerUsername) {
+      const uname = normalizeUsername(peerUsername);
+      const user = getCurrentUser();
+      const users = loadAllUsers();
+      const dir = loadLocalDirectory();
+      if (user && Array.isArray(user.contacts)) {
+        const found = user.contacts.find(c => c.username === uname);
+        if (found && found.aliasName) return found.aliasName;
+      }
+      if (users[uname] && users[uname].displayName) return users[uname].displayName;
+      if (dir[uname] && dir[uname].displayName) return dir[uname].displayName;
+      return `@${uname}`;
+    }
+
+    function renderChatsList() {
+      const user = getCurrentUser();
+      const container = document.getElementById('chatsListContainer');
+      const totalPill = document.getElementById('totalUnreadPill');
+      if (!user || !container) return;
+
+      const unreadMap = user.unread || {};
+      const totalUnread = Object.values(unreadMap).reduce((sum, n) => sum + (Number(n) || 0), 0);
+      if (totalPill) {
+        totalPill.style.display = totalUnread > 0 ? 'inline-block' : 'none';
+        totalPill.textContent = totalUnread;
+      }
+
+      const query = (document.getElementById('chatSearchInput')?.value || '').trim().toLowerCase();
+      const chats = user.chats || {};
+      const peerSet = new Set(Object.keys(chats));
+
+      if (query) {
+        getAllKnownAccounts().forEach(acc => {
+          if (acc.username !== activeUsername) {
+            if (acc.username.includes(query) || String(acc.displayName || '').toLowerCase().includes(query)) {
+              peerSet.add(acc.username);
+            }
+          }
+        });
+      }
+
+      const peerList = Array.from(peerSet).filter(peer => {
+        const label = getContactDisplayName(peer).toLowerCase();
+        return !query || peer.toLowerCase().includes(query) || label.includes(query);
+      });
+
+      peerList.sort((a, b) => {
+        const msgsA = chats[a] || [];
+        const msgsB = chats[b] || [];
+        const lastA = msgsA.length ? msgsA[msgsA.length - 1].ts : 0;
+        const lastB = msgsB.length ? msgsB[msgsB.length - 1].ts : 0;
+        if (lastB !== lastA) return lastB - lastA;
+        return (isUserOnlineNow(b) ? 1 : 0) - (isUserOnlineNow(a) ? 1 : 0);
+      });
+
+      if (peerList.length === 0) {
+        container.innerHTML = '<div class="empty-state">Belum ada percakapan.<br>Ketuk <strong>💬</strong> atau <strong>➕</strong> lalu cari nama akun (contoh: <strong>yeyu</strong>) untuk mulai chat realtime.</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      peerList.forEach(peer => {
+        const msgs = chats[peer] || [];
+        const lastMsg = msgs[msgs.length - 1];
+        const title = getContactDisplayName(peer);
+        const unreadCount = Number(unreadMap[peer]) || 0;
+        const online = isUserOnlineNow(peer);
+
+        let subtitle = `@${peer} • ${online ? 'Online' : 'Terdaftar'}`;
+        if (lastMsg) {
+          const tickPrefix = lastMsg.dir === 'out' ? (lastMsg.read ? '✓✓ ' : '✓ ') : '';
+          subtitle = tickPrefix + formatMessagePreviewText(lastMsg);
+        }
+        const timeStr = lastMsg ? lastMsg.time : (online ? 'Online' : '');
+
+        const item = document.createElement('div');
+        item.className = 'chat-list-item';
+        item.onclick = () => openChatRoom(peer);
+        item.innerHTML = `
+          <div class="chat-avatar">${title.charAt(0).toUpperCase()}<span class="online-badge ${online ? '' : 'away'}"></span></div>
+          <div class="chat-item-body">
+            <div class="chat-item-top">
+              <span class="chat-item-name">${escapeHtml(title)}</span>
+              <span class="chat-item-time ${unreadCount > 0 ? 'unread' : ''}">${escapeHtml(timeStr)}</span>
+            </div>
+            <div class="chat-item-bottom">
+              <div class="chat-item-sub">${escapeHtml(subtitle)}</div>
+              ${unreadCount > 0 ? `<span class="unread-badge">${unreadCount}</span>` : ''}
+            </div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function openNewChatModal() {
+      document.getElementById('contactModalTitle').textContent = 'Chat Baru Lewat Nama Akun';
+      document.getElementById('contactUsernameInput').value = '';
+      document.getElementById('unregisteredAlert').classList.remove('show');
+      document.getElementById('contactModal').classList.add('open');
+      syncDirectoryFromCloud().then(() => {
+        renderSearchMatchCards('contactUsernameInput', 'modalSearchMatches', (uname) => {
+          document.getElementById('contactUsernameInput').value = uname;
+          verifyRegisteredAndOpenChat();
+        });
+      });
+    }
+
+    function closeContactModal() {
+      document.getElementById('contactModal').classList.remove('open');
+    }
+
+    function renderSearchMatchCards(inputId, boxId, onPickCallback) {
+      const box = document.getElementById(boxId);
+      const inp = document.getElementById(inputId);
+      if (!box || !inp) return;
+      const q = normalizeUsername(inp.value);
+      const all = getAllKnownAccounts().filter(acc => acc.username !== activeUsername);
+      const matches = q
+        ? all.filter(acc => acc.username.includes(q) || String(acc.displayName || '').toLowerCase().includes(q))
+        : all.slice(0, 6);
+
+      if (!matches.length) {
+        box.classList.remove('show');
+        box.innerHTML = '';
+        return;
+      }
+
+      box.classList.add('show');
+      box.innerHTML = '';
+      matches.slice(0, 5).forEach(acc => {
+        const card = document.createElement('div');
+        card.className = 'found-account-card';
+        card.style.marginBottom = '6px';
+        const online = isUserOnlineNow(acc.username);
+        card.innerHTML = `
+          <div>
+            <div style="font-size:13px;font-weight:700;">@${escapeHtml(acc.username)} <span class="${online ? 'online-tag-inline' : 'offline-tag-inline'}">${online ? '● Online' : '○ Terdaftar'}</span></div>
+            <div style="font-size:11.5px;color:var(--text-muted);">${escapeHtml(acc.displayName || acc.username)}</div>
+          </div>
+        `;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'social-action-btn';
+        btn.textContent = 'Pilih';
+        btn.onclick = () => onPickCallback(acc.username);
+        card.appendChild(btn);
+        box.appendChild(card);
+      });
+    }
+
+    function handleModalUsernameSearch() {
+      document.getElementById('unregisteredAlert').classList.remove('show');
+      renderSearchMatchCards('contactUsernameInput', 'modalSearchMatches', (uname) => {
+        document.getElementById('contactUsernameInput').value = uname;
+        verifyRegisteredAndOpenChat();
+      });
+    }
+
+    async function verifyRegisteredAndOpenChat() {
+      const rawTarget = document.getElementById('contactUsernameInput').value;
+      const check = validateUsernameFormat(rawTarget);
+      const alertBox = document.getElementById('unregisteredAlert');
+      const btn = document.getElementById('verifyAndChatBtn');
+
+      alertBox.classList.remove('show');
+
+      if (!check.valid) {
+        showToast(check.reason);
+        return;
+      }
+
+      const targetUname = check.username;
+      if (targetUname === activeUsername) {
+        showToast('Tidak bisa mengirim pesan ke nama akun sendiri');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = `Mencari akun @${targetUname} realtime...`;
+
+      const foundAccount = await findRegisteredAccount(targetUname);
+
+      btn.disabled = false;
+      btn.textContent = 'Cari Akun & Mulai Chat';
+
+      if (!foundAccount) {
+        alertBox.classList.add('show');
+        showToast(`Akun @${targetUname} belum ditemukan`);
+        return;
+      }
+
+      const finalAlias = foundAccount.displayName || `@${targetUname}`;
+      updateCurrentUser(user => {
+        if (!Array.isArray(user.contacts)) user.contacts = [];
+        const idx = user.contacts.findIndex(item => item.username === targetUname);
+        const entry = { username: targetUname, aliasName: finalAlias };
+        if (idx >= 0) user.contacts[idx] = entry;
+        else user.contacts.push(entry);
+        if (!user.chats[targetUname]) user.chats[targetUname] = [];
+      });
+
+      closeContactModal();
+      refreshAllViews();
+      openChatRoom(targetUname);
+    }
+
+    async function openChatRoom(peerUsername) {
+      const uname = normalizeUsername(peerUsername);
+      if (!uname) return;
+
+      const found = await findRegisteredAccount(uname);
+      if (!found) {
+        showToast(`Nama akun @${uname} tidak ditemukan`);
+        return;
+      }
+
+      activePeerUsername = uname;
+      touchCurrentUserActivity();
+      cancelReplyQuote();
+
+      updateCurrentUser(user => {
+        if (!user.unread) user.unread = {};
+        user.unread[activePeerUsername] = 0;
+        if (!user.chats[activePeerUsername]) user.chats[activePeerUsername] = [];
+      });
+      sendControlSignalToPeer(activePeerUsername, { kind: 'read_receipt' });
+
+      const label = getContactDisplayName(activePeerUsername);
+      document.getElementById('roomPeerName').textContent = label;
+      const subEl = document.getElementById('roomPeerSub');
+      subEl.textContent = `${isUserOnlineNow(activePeerUsername) ? 'online' : 'terhubung'} • @${activePeerUsername}`;
+      subEl.classList.remove('typing');
+
+      document.getElementById('roomPeerAvatar').textContent = label.charAt(0).toUpperCase();
+      document.getElementById('roomDrawer').classList.add('open');
+      renderRoomMessages();
+      renderChatsList();
+      pollCloudMailboxOnce();
+    }
+
+    function closeChatRoom() {
+      activePeerUsername = '';
+      cancelReplyQuote();
+      document.getElementById('roomDrawer').classList.remove('open');
+    }
+
+    function renderRoomMessages() {
+      const user = getCurrentUser();
+      const container = document.getElementById('messagesContainer');
+      if (!user || !activePeerUsername || !container) return;
+
+      const msgs = (user.chats && user.chats[activePeerUsername]) || [];
+      container.innerHTML = '';
+
+      msgs.forEach(m => {
+        const wrap = document.createElement('div');
+        wrap.className = `msg-bubble-wrap ${m.dir === 'out' ? 'sent' : 'received'}`;
+
+        const bubble = document.createElement('div');
+        bubble.className = 'msg-bubble';
+        bubble.onclick = () => openMsgActionModal(m.id);
+
+        if (m.replyTo) {
+          const qBox = document.createElement('div');
+          qBox.className = 'quote-box';
+          qBox.innerHTML = `
+            <div class="quote-author">${escapeHtml(m.replyTo.author || '')}</div>
+            <div class="quote-snippet">${escapeHtml(m.replyTo.text || '📷 Foto')}</div>
+          `;
+          bubble.appendChild(qBox);
+        }
+
+        const att = m.attachment || (m.image ? {
+          dataUrl: m.image,
+          name: 'gambar.jpg',
+          mime: 'image/jpeg',
+          size: 0
+        } : null);
+
+        if (att && att.dataUrl) {
+          const mime = String(att.mime || '').toLowerCase();
+          const fileName = att.name || 'file';
+          const sizeLabel = att.size ? formatFileSize(att.size) : 'Kualitas Asli';
+
+          if (mime.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.src = att.dataUrl;
+            img.className = 'msg-img';
+            img.alt = fileName;
+            bubble.appendChild(img);
+          } else if (mime.startsWith('video/')) {
+            const vid = document.createElement('video');
+            vid.src = att.dataUrl;
+            vid.className = 'msg-media';
+            vid.controls = true;
+            vid.playsInline = true;
+            bubble.appendChild(vid);
+          } else if (mime.startsWith('audio/')) {
+            const aud = document.createElement('audio');
+            aud.src = att.dataUrl;
+            aud.className = 'msg-audio';
+            aud.controls = true;
+            bubble.appendChild(aud);
+          }
+
+          const card = document.createElement('div');
+          card.className = 'file-card';
+          card.onclick = (ev) => ev.stopPropagation();
+          card.innerHTML = `
+            <div class="file-card-icon">${getFileTypeIcon(mime, fileName)}</div>
+            <div class="file-card-meta">
+              <div class="file-card-name" title="${escapeHtml(fileName)}">${escapeHtml(fileName)}</div>
+              <div class="file-card-sub">${escapeHtml(sizeLabel)} • Tanpa kompresi</div>
+            </div>
+          `;
+          const dlLink = document.createElement('a');
+          dlLink.className = 'file-dl-btn';
+          dlLink.href = att.dataUrl;
+          dlLink.download = fileName;
+          dlLink.textContent = 'Unduh';
+          dlLink.onclick = (ev) => ev.stopPropagation();
+          card.appendChild(dlLink);
+          bubble.appendChild(card);
+        }
+
+        if (m.text) {
+          const textDiv = document.createElement('div');
+          textDiv.textContent = m.text;
+          bubble.appendChild(textDiv);
+        }
+
+        const footer = document.createElement('div');
+        footer.className = 'msg-footer';
+        if (m.dir === 'out') {
+          const tickSpan = document.createElement('span');
+          tickSpan.className = m.read ? 'tick-read' : '';
+          tickSpan.textContent = m.read ? '✓✓' : (m.delivered ? '✓✓' : '✓');
+          footer.innerHTML = `<span>${escapeHtml(m.time || '')}</span> `;
+          footer.appendChild(tickSpan);
+        } else {
+          footer.textContent = m.time || '';
+        }
+        bubble.appendChild(footer);
+
+        wrap.appendChild(bubble);
+        container.appendChild(wrap);
+      });
+
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function openMsgActionModal(msgId) {
+      selectedMsgIdForAction = msgId;
+      document.getElementById('msgActionModal').classList.add('open');
+    }
+
+    function closeMsgActionModal() {
+      document.getElementById('msgActionModal').classList.remove('open');
+    }
+
+    function triggerReplySelectedMsg() {
+      const user = getCurrentUser();
+      if (!user || !activePeerUsername || !selectedMsgIdForAction) return;
+      const msgs = user.chats[activePeerUsername] || [];
+      const found = msgs.find(m => m.id === selectedMsgIdForAction);
+      closeMsgActionModal();
+      if (!found) return;
+
+      const authorName = found.dir === 'out' ? 'Anda' : getContactDisplayName(activePeerUsername);
+      activeReplyQuote = {
+        id: found.id,
+        author: authorName,
+        text: formatMessagePreviewText(found)
+      };
+      document.getElementById('replyBarTitle').textContent = `Membalas ${authorName}`;
+      document.getElementById('replyBarText').textContent = activeReplyQuote.text;
+      document.getElementById('replyBar').classList.add('open');
+      document.getElementById('messageTextInput').focus();
+    }
+
+    function cancelReplyQuote() {
+      activeReplyQuote = null;
+      const bar = document.getElementById('replyBar');
+      if (bar) bar.classList.remove('open');
+    }
+
+    function copySelectedMsgText() {
+      const user = getCurrentUser();
+      if (!user || !activePeerUsername || !selectedMsgIdForAction) return;
+      const msgs = user.chats[activePeerUsername] || [];
+      const found = msgs.find(m => m.id === selectedMsgIdForAction);
+      closeMsgActionModal();
+      if (found && found.text && navigator.clipboard) {
+        navigator.clipboard.writeText(found.text);
+        showToast('Teks disalin');
+      }
+    }
+
+    function deleteSelectedMsgForMe() {
+      if (!activePeerUsername || !selectedMsgIdForAction) return;
+      updateCurrentUser(user => {
+        if (user.chats[activePeerUsername]) {
+          user.chats[activePeerUsername] = user.chats[activePeerUsername].filter(m => m.id !== selectedMsgIdForAction);
+        }
+      });
+      closeMsgActionModal();
+      renderRoomMessages();
+      renderChatsList();
+      showToast('Pesan dihapus untuk saya');
+    }
+
+    function getMailboxTopic(username) {
+      const safeKey = normalizeUsername(username).replace(/[^a-z0-9]/g, '');
+      return `bubble_relay_${safeKey || 'anon'}`;
+    }
+
+    async function pushPacketToCloudMailbox(targetUsername, payloadObj) {
+      const topic = getMailboxTopic(targetUsername);
+      if (!topic || topic === 'bubble_relay_anon') return;
+      try {
+        const res = await fetch(`https://ntfy.sh/${topic}`, {
+          method: 'POST',
+          body: JSON.stringify(payloadObj),
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+          cache: 'no-store'
+        });
+        if (res.ok) updateRealtimeBadge(true);
+      } catch (e) {
+        updateRealtimeBadge(false);
+      }
+    }
+
+    function sendControlSignalToPeer(peerUsername, controlData) {
+      if (!activeUsername || !peerUsername) return;
+      const payload = {
+        type: 'wa_ctrl',
+        id: `ctrl-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        from: activeUsername,
+        to: normalizeUsername(peerUsername),
+        ...controlData
+      };
+      seenCloudPacketIds.add(payload.id);
+      if (realtimeChannel) {
+        try { realtimeChannel.postMessage(payload); } catch (e) {}
+      }
+      try {
+        localStorage.setItem(STORAGE_BUS_KEY, JSON.stringify({ nonce: Math.random(), payload }));
+      } catch (e) {}
+      pushPacketToCloudMailbox(peerUsername, payload);
+    }
+
+    function notifyPeerTyping() {
+      if (!activePeerUsername) return;
+      const now = Date.now();
+      if (now - typingCooldown < 2000) return;
+      typingCooldown = now;
+      sendControlSignalToPeer(activePeerUsername, { kind: 'typing' });
+    }
+
+    function handleIncomingCloudOrBusPayload(data) {
+      if (!data) return;
+
+      if (data.type === 'wa_account_reg' || data.type === 'wa_presence' || data.type === 'wa_account_del') {
+        const key = `${data.type}:${normalizeUsername(data.username)}:${data.ts || data.lastActiveAt || ''}`;
+        if (seenCloudPacketIds.has(key)) return;
+        seenCloudPacketIds.add(key);
+        if (processDirectoryEventObject(data) && activeUsername) {
+          refreshAllViews();
+        }
+        return;
+      }
+
+      if (!data.id || !data.to || !data.from) return;
+      if (seenCloudPacketIds.has(data.id)) return;
+      seenCloudPacketIds.add(data.id);
+
+      const meUname = normalizeUsername(data.to);
+      const peerUname = normalizeUsername(data.from);
+      if (!activeUsername || meUname !== activeUsername) return;
+
+      registerAccountInLocalDirectory(peerUname, data.fromName || `@${peerUname}`, 'Ada', '', Date.now());
+
+      if (data.type === 'wa_chunk' && data.groupId) {
+        if (!pendingFileChunks[data.groupId]) {
+          pendingFileChunks[data.groupId] = { total: data.total, parts: {}, received: 0 };
+        }
+        const entry = pendingFileChunks[data.groupId];
+        if (entry.parts[data.index] === undefined) {
+          entry.parts[data.index] = data.data;
+          entry.received += 1;
+        }
+        if (entry.received >= entry.total) {
+          let joined = '';
+          for (let i = 0; i < entry.total; i++) {
+            joined += entry.parts[i] || '';
+          }
+          delete pendingFileChunks[data.groupId];
+          try {
+            const fullPayload = JSON.parse(joined);
+            handleIncomingCloudOrBusPayload(fullPayload);
+          } catch (err) {}
+        }
+        return;
+      }
+
+      if (data.type === 'wa_ctrl') {
+        if (data.kind === 'typing' && activePeerUsername === peerUname) {
+          const subEl = document.getElementById('roomPeerSub');
+          subEl.textContent = 'sedang mengetik...';
+          subEl.classList.add('typing');
+          clearTimeout(peerTypingTimeout);
+          peerTypingTimeout = setTimeout(() => {
+            subEl.textContent = `${isUserOnlineNow(peerUname) ? 'online' : 'terhubung'} • @${peerUname}`;
+            subEl.classList.remove('typing');
+          }, 2800);
+        } else if (data.kind === 'read_receipt') {
+          updateCurrentUser(user => {
+            const list = user.chats[peerUname] || [];
+            list.forEach(m => {
+              if (m.dir === 'out') {
+                m.delivered = true;
+                m.read = true;
+              }
+            });
+          });
+          if (activePeerUsername === peerUname) renderRoomMessages();
+          renderChatsList();
+        } else if (data.kind === 'delivered_receipt') {
+          updateCurrentUser(user => {
+            const list = user.chats[peerUname] || [];
+            list.forEach(m => {
+              if (m.dir === 'out') m.delivered = true;
+            });
+          });
+          if (activePeerUsername === peerUname) renderRoomMessages();
+          renderChatsList();
+        }
+        return;
+      }
+
+      if (data.type === 'wa_msg' && data.packet) {
+        const packet = data.packet;
+        registerAccountInLocalDirectory(peerUname, packet.fromName || `@${peerUname}`, 'Ada', '', packet.ts || Date.now());
+
+        const isViewingThread = activePeerUsername === peerUname;
+        updateCurrentUser(user => {
+          if (!user.chats[peerUname]) user.chats[peerUname] = [];
+          const exists = user.chats[peerUname].some(m => m.id === packet.id);
+          if (!exists) {
+            user.chats[peerUname].push({
+              id: packet.id,
+              dir: 'in',
+              text: packet.text || '',
+              image: packet.image || '',
+              attachment: packet.attachment || null,
+              replyTo: packet.replyTo || null,
+              time: packet.time || '',
+              ts: packet.ts || Date.now()
+            });
+          }
+          if (!user.unread) user.unread = {};
+          if (isViewingThread) {
+            user.unread[peerUname] = 0;
+          } else {
+            user.unread[peerUname] = (Number(user.unread[peerUname]) || 0) + 1;
+          }
+        });
+
+        sendControlSignalToPeer(peerUname, {
+          kind: isViewingThread ? 'read_receipt' : 'delivered_receipt'
+        });
+
+        if (isViewingThread) {
+          renderRoomMessages();
+        } else {
+          showToast(`Pesan baru dari ${packet.fromName || '@' + peerUname}`);
+        }
+        renderChatsList();
+      } else if (data.type === 'wa_chess') {
+        handleIncomingChessSignal(peerUname, data);
+      } else if (data.type === 'wa_social') {
+        handleIncomingSocialSignal(peerUname, data);
+      }
+    }
+
+    async function pollCloudMailboxOnce() {
+      if (!activeUsername) return;
+      const topic = getMailboxTopic(activeUsername);
+      try {
+        const res = await fetch(`https://ntfy.sh/${topic}/json?poll=1&since=24h`, { cache: 'no-store' });
+        if (!res.ok) return;
+        updateRealtimeBadge(true);
+        const rawText = await res.text();
+        rawText.split('\n').forEach(line => {
+          if (!line.trim()) return;
+          try {
+            const env = JSON.parse(line);
+            if (env && env.event === 'message' && env.message) {
+              const inner = JSON.parse(env.message);
+              handleIncomingCloudOrBusPayload(inner);
+            }
+          } catch (e) {}
+        });
+      } catch (e) {}
+    }
+
+    function connectCloudMailboxStream() {
+      disconnectCloudMailboxStream();
+      if (!activeUsername) return;
+      const topic = getMailboxTopic(activeUsername);
+      pollCloudMailboxOnce();
+      syncDirectoryFromCloud();
+
+      try {
+        cloudEventSource = new EventSource(`https://ntfy.sh/${topic}/sse?since=10m`);
+        cloudEventSource.onopen = () => updateRealtimeBadge(true);
+        cloudEventSource.onmessage = (e) => {
+          updateRealtimeBadge(true);
+          try {
+            const env = JSON.parse(e.data);
+            if (env && env.event === 'message' && env.message) {
+              const inner = JSON.parse(env.message);
+              handleIncomingCloudOrBusPayload(inner);
+            }
+          } catch (err) {}
+        };
+      } catch (e) {}
+
+      try {
+        dirEventSource = new EventSource(`https://ntfy.sh/${CLOUD_DIRECTORY_TOPIC}/sse?since=10m`);
+        dirEventSource.onopen = () => updateRealtimeBadge(true);
+        dirEventSource.onmessage = (e) => {
+          updateRealtimeBadge(true);
+          try {
+            const env = JSON.parse(e.data);
+            if (env && env.event === 'message' && env.message) {
+              const entry = JSON.parse(env.message);
+              handleIncomingCloudOrBusPayload(entry);
+            }
+          } catch (err) {}
+        };
+      } catch (e) {}
+
+      cloudPollTimer = setInterval(() => {
+        pollCloudMailboxOnce();
+        syncDirectoryFromCloud();
+      }, 2000);
+
+      if (presenceHeartbeatTimer) clearInterval(presenceHeartbeatTimer);
+      presenceHeartbeatTimer = setInterval(() => {
+        const user = getCurrentUser();
+        if (user) {
+          touchCurrentUserActivity();
+          announceAccountToCloud(user.username, user.displayName, user.status, user.passwordHash, true);
+        }
+      }, 20000);
+    }
+
+    function disconnectCloudMailboxStream() {
+      if (cloudEventSource) {
+        cloudEventSource.close();
+        cloudEventSource = null;
+      }
+      if (dirEventSource) {
+        dirEventSource.close();
+        dirEventSource = null;
+      }
+      if (cloudPollTimer) {
+        clearInterval(cloudPollTimer);
+        cloudPollTimer = null;
+      }
+    }
+
+    function formatFileSize(bytes) {
+      const b = Number(bytes) || 0;
+      if (b < 1024) return `${b} B`;
+      if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+      return `${(b / (1024 * 1024)).toFixed(2)} MB`;
+    }
+
+    function getFileTypeIcon(mime, name) {
+      const m = String(mime || '').toLowerCase();
+      const n = String(name || '').toLowerCase();
+      if (m.startsWith('image/')) return '🖼️';
+      if (m.startsWith('video/')) return '🎬';
+      if (m.startsWith('audio/')) return '🎵';
+      if (m.includes('pdf') || n.endsWith('.pdf')) return '📕';
+      if (n.endsWith('.zip') || n.endsWith('.rar') || n.endsWith('.7z')) return '🗜️';
+      if (n.endsWith('.doc') || n.endsWith('.docx') || n.endsWith('.txt')) return '📝';
+      if (n.endsWith('.xls') || n.endsWith('.xlsx') || n.endsWith('.csv')) return '📊';
+      return '📄';
+    }
+
+    function formatMessagePreviewText(msg) {
+      if (!msg) return '';
+      if (msg.text) return msg.text;
+      if (msg.attachment && msg.attachment.name) {
+        const mime = String(msg.attachment.mime || '').toLowerCase();
+        const prefix = mime.startsWith('image/') ? '🖼️ ' : (mime.startsWith('video/') ? '🎬 ' : (mime.startsWith('audio/') ? '🎵 ' : '📎 '));
+        return prefix + msg.attachment.name;
+      }
+      if (msg.image) return '🖼️ Foto';
+      return '';
+    }
+
+    async function sendCloudMessageWithChunking(targetUsername, payloadObj) {
+      const serialized = JSON.stringify(payloadObj);
+      const MAX_CHUNK_CHARS = 3800;
+      if (serialized.length <= MAX_CHUNK_CHARS) {
+        await pushPacketToCloudMailbox(targetUsername, payloadObj);
+        return;
+      }
+      const totalChunks = Math.ceil(serialized.length / MAX_CHUNK_CHARS);
+      const groupId = payloadObj.id;
+      for (let i = 0; i < totalChunks; i++) {
+        const slice = serialized.slice(i * MAX_CHUNK_CHARS, (i + 1) * MAX_CHUNK_CHARS);
+        await pushPacketToCloudMailbox(targetUsername, {
+          type: 'wa_chunk',
+          id: `${groupId}_part_${i}`,
+          groupId: groupId,
+          index: i,
+          total: totalChunks,
+          from: payloadObj.from,
+          to: payloadObj.to,
+          data: slice
+        });
+      }
+    }
+
+    async function dispatchDirectMessage(peerUsername, text, attachmentObj) {
+      const targetUname = normalizeUsername(peerUsername);
+      if (!activeUsername || !targetUname) return;
+
+      const found = await findRegisteredAccount(targetUname);
+      if (!found) {
+        showToast(`Gagal kirim: Nama akun @${targetUname} belum terdaftar`);
+        return;
+      }
+
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      const ts = now.getTime();
+      const msgId = `msg-${ts}-${Math.random().toString(36).slice(2, 7)}`;
+      const quoteSnapshot = activeReplyQuote ? { ...activeReplyQuote } : null;
+      cancelReplyQuote();
+
+      const legacyImg = (attachmentObj && String(attachmentObj.mime || '').startsWith('image/')) ? attachmentObj.dataUrl : '';
+
+      const outgoingRecord = {
+        id: msgId,
+        dir: 'out',
+        text: text || '',
+        image: legacyImg,
+        attachment: attachmentObj || null,
+        replyTo: quoteSnapshot,
+        delivered: false,
+        read: false,
+        time: timeStr,
+        ts: ts
+      };
+
+      try {
+        updateCurrentUser(user => {
+          if (!user.chats[targetUname]) user.chats[targetUname] = [];
+          user.chats[targetUname].push(outgoingRecord);
+        });
+      } catch (storageErr) {
+        showToast('Memori penyimpanan browser penuh untuk file terlalu besar');
+        return;
+      }
+
+      const users = loadAllUsers();
+      const senderProfile = users[activeUsername];
+      const senderName = (senderProfile && senderProfile.displayName) || `@${activeUsername}`;
+
+      const payload = {
+        type: 'wa_msg',
+        id: msgId,
+        from: activeUsername,
+        to: targetUname,
+        packet: {
+          id: msgId,
+          from: activeUsername,
+          fromName: senderName,
+          to: targetUname,
+          text: text || '',
+          image: legacyImg,
+          attachment: attachmentObj || null,
+          replyTo: quoteSnapshot,
+          time: timeStr,
+          ts: ts
+        }
+      };
+
+      seenCloudPacketIds.add(msgId);
+      if (realtimeChannel) {
+        try { realtimeChannel.postMessage(payload); } catch (e) {}
+      }
+      try {
+        localStorage.setItem(STORAGE_BUS_KEY, JSON.stringify({ nonce: Math.random(), payload }));
+      } catch (e) {}
+      await sendCloudMessageWithChunking(targetUname, payload);
+
+      if (activePeerUsername === targetUname) renderRoomMessages();
+      renderChatsList();
+    }
+
+    function sendMessageToPeer(e) {
+      e.preventDefault();
+      if (!activePeerUsername) return;
+      const input = document.getElementById('messageTextInput');
+      const text = input.value.trim();
+      if (!text) return;
+      touchCurrentUserActivity();
+      dispatchDirectMessage(activePeerUsername, text, null);
+      input.value = '';
+    }
+
+    function handleSendOriginalFile(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file || !activePeerUsername) return;
+
+      const MAX_RAW_BYTES = 3.5 * 1024 * 1024;
+      if (file.size > MAX_RAW_BYTES) {
+        showToast(`Ukuran file ${formatFileSize(file.size)} melebihi batas 3.5 MB`);
+        e.target.value = '';
+        return;
+      }
+
+      showToast(`Mengirim ${file.name} (${formatFileSize(file.size)}) kualitas asli...`);
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const originalDataUrl = ev.target.result;
+        const caption = document.getElementById('messageTextInput').value.trim();
+        touchCurrentUserActivity();
+        dispatchDirectMessage(activePeerUsername, caption, {
+          name: file.name,
+          mime: file.type || 'application/octet-stream',
+          size: file.size,
+          dataUrl: originalDataUrl
+        });
+        document.getElementById('messageTextInput').value = '';
+        e.target.value = '';
+      };
+      reader.onerror = function() {
+        showToast('Gagal membaca file dari perangkat');
+        e.target.value = '';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearCurrentThread() {
+      if (!activePeerUsername) return;
+      updateCurrentUser(user => {
+        user.chats[activePeerUsername] = [];
+      });
+      renderRoomMessages();
+      renderChatsList();
+      showToast('Chat dibersihkan');
+    }
+
+    function getRemainingActiveDays(entryOrUser, nowMs = Date.now()) {
+      const lastActive = getAccountLastActive(entryOrUser);
+      if (!lastActive) return 30;
+      const elapsed = Math.max(0, nowMs - lastActive);
+      const remainingMs = Math.max(0, INACTIVITY_TTL_MS - elapsed);
+      return Math.ceil(remainingMs / (24 * 60 * 60 * 1000));
+    }
+
+    function openProfileModal() {
+      const user = getCurrentUser();
+      if (!user) return;
+      touchCurrentUserActivity();
+      const freshUser = getCurrentUser() || user;
+      const daysLeft = getRemainingActiveDays(freshUser);
+      const infoEl = document.getElementById('profileRetentionInfo');
+      if (infoEl) {
+        if (daysLeft <= 5) {
+          infoEl.style.background = 'rgba(245,158,11,0.15)';
+          infoEl.style.borderColor = 'rgba(245,158,11,0.45)';
+          infoEl.style.color = '#fde68a';
+          infoEl.innerHTML = `⚠️ <strong>Masa aktif tersisa ${daysLeft} hari</strong> sebelum akun dihapus permanen karena tidak aktif (>30 hari). Aktivitas kamu baru saja diperbarui.`;
+        } else {
+          infoEl.style.background = 'rgba(0,168,132,0.1)';
+          infoEl.style.borderColor = 'rgba(0,168,132,0.28)';
+          infoEl.style.color = '#cbd5e1';
+          infoEl.innerHTML = `🕒 <strong>Masa aktif tersisa ${daysLeft} hari</strong> dari batas 30 hari tidak aktif. Akun otomatis dihapus permanen jika tidak aktif lebih dari 1 bulan.`;
+        }
+      }
+      document.getElementById('profileUsernameReadonly').value = `@${freshUser.username}`;
+      document.getElementById('profileDisplayNameInput').value = freshUser.displayName || '';
+      document.getElementById('profileNewPasswordInput').value = '';
+      document.getElementById('profileModal').classList.add('open');
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profileModal').classList.remove('open');
+    }
+
+    async function saveProfileChanges() {
+      const newName = document.getElementById('profileDisplayNameInput').value.trim();
+      const newPwd = document.getElementById('profileNewPasswordInput').value;
+      if (!newName) {
+        showToast('Nama tampilan tidak boleh kosong');
+        return;
+      }
+      if (newPwd && newPwd.length < 4) {
+        showToast('Kata sandi baru minimal 4 karakter');
+        return;
+      }
+      const newHash = newPwd ? await hashPassword(activeUsername, newPwd) : '';
+      const updated = updateCurrentUser(user => {
+        user.displayName = newName;
+        if (newHash) user.passwordHash = newHash;
+      });
+      if (updated) {
+        await announceAccountToCloud(updated.username, updated.displayName, updated.status, updated.passwordHash, false);
+      }
+      closeProfileModal();
+      refreshAllViews();
+      showToast(newHash ? 'Profil & kata sandi diperbarui' : 'Nama tampilan disimpan');
+    }
+
+    function setupRealtimeListeners() {
+      if (typeof BroadcastChannel !== 'undefined' && !realtimeChannel) {
+        realtimeChannel = new BroadcastChannel('wa_username_pwd_channel_v2');
+        realtimeChannel.onmessage = (event) => {
+          if (event.data) handleIncomingCloudOrBusPayload(event.data);
+        };
+      }
+
+      connectCloudMailboxStream();
+
+      window.addEventListener('storage', (e) => {
+        if (e.key === STORAGE_BUS_KEY && e.newValue) {
+          try {
+            const parsed = JSON.parse(e.newValue);
+            if (parsed && parsed.payload) handleIncomingCloudOrBusPayload(parsed.payload);
+          } catch (err) {}
+        }
+      });
+    }
+
+    // --- SISTEM PENGIKUT, MENGIKUTI & TEMAN (SALING MENGIKUTI) REALTIME ---
+    function ensureSocialFieldsOnUser(user) {
+      if (!user) return;
+      if (!Array.isArray(user.following)) user.following = [];
+      if (!Array.isArray(user.followers)) user.followers = [];
+    }
+
+    function getSocialListsForCurrentUser() {
+      const user = getCurrentUser();
+      if (!user) return { following: [], followers: [], friends: [] };
+      ensureSocialFieldsOnUser(user);
+      const following = Array.from(new Set(user.following.map(normalizeUsername).filter(Boolean)));
+      const followers = Array.from(new Set(user.followers.map(normalizeUsername).filter(Boolean)));
+      const friends = following.filter(u => followers.includes(u));
+      return { following, followers, friends };
+    }
+
+    function isMutualFriend(peerUsername) {
+      const target = normalizeUsername(peerUsername);
+      if (!target) return false;
+      const { friends } = getSocialListsForCurrentUser();
+      return friends.includes(target);
+    }
+
+    function sendSocialRelationSignal(targetUsername, action) {
+      const target = normalizeUsername(targetUsername);
+      if (!activeUsername || !target || target === activeUsername) return;
+      const user = getCurrentUser();
+      const payload = {
+        type: 'wa_social',
+        id: `soc-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        from: activeUsername,
+        fromName: (user && user.displayName) || `@${activeUsername}`,
+        to: target,
+        action: action
+      };
+      seenCloudPacketIds.add(payload.id);
+      if (realtimeChannel) {
+        try { realtimeChannel.postMessage(payload); } catch (e) {}
+      }
+      try {
+        localStorage.setItem(STORAGE_BUS_KEY, JSON.stringify({ nonce: Math.random(), payload }));
+      } catch (e) {}
+      pushPacketToCloudMailbox(target, payload);
+    }
+
+    function renderFollowSuggestions() {
+      const box = document.getElementById('followSearchSuggestions');
+      const inp = document.getElementById('followTargetInput');
+      if (!box || !inp) return;
+      const q = normalizeUsername(inp.value);
+      const { following } = getSocialListsForCurrentUser();
+      const candidates = getAllKnownAccounts().filter(acc => acc.username !== activeUsername);
+      const filtered = q
+        ? candidates.filter(acc => acc.username.includes(q) || String(acc.displayName || '').toLowerCase().includes(q))
+        : candidates.slice(0, 4);
+
+      if (!filtered.length) {
+        box.innerHTML = '';
+        return;
+      }
+
+      box.innerHTML = '';
+      filtered.slice(0, 4).forEach(acc => {
+        const row = document.createElement('div');
+        row.className = 'social-user-row';
+        row.style.marginBottom = '4px';
+        const online = isUserOnlineNow(acc.username);
+        row.innerHTML = `<span><strong>@${escapeHtml(acc.username)}</strong> <span class="${online ? 'online-tag-inline' : 'offline-tag-inline'}">${online ? '● Online' : '○ Terdaftar'}</span></span>`;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'social-action-btn';
+        btn.textContent = following.includes(acc.username) ? 'Diikuti' : 'Ikuti';
+        btn.onclick = () => {
+          inp.value = acc.username;
+          followUserByUsername(acc.username);
+        };
+        row.appendChild(btn);
+        box.appendChild(row);
+      });
+    }
+
+    async function followUserByUsername(rawTarget) {
+      const check = validateUsernameFormat(rawTarget);
+      if (!check.valid) {
+        showToast(check.reason);
+        return;
+      }
+      const targetUname = check.username;
+      if (targetUname === activeUsername) {
+        showToast('Tidak bisa mengikuti akun sendiri');
+        return;
+      }
+      showToast(`Mencari akun @${targetUname}...`);
+      const found = await findRegisteredAccount(targetUname);
+      if (!found) {
+        showToast(`Akun @${targetUname} belum terdaftar`);
+        return;
+      }
+
+      let becameFriend = false;
+      updateCurrentUser(user => {
+        ensureSocialFieldsOnUser(user);
+        if (!user.following.includes(targetUname)) {
+          user.following.push(targetUname);
+        }
+        becameFriend = user.followers.includes(targetUname);
+      });
+
+      sendSocialRelationSignal(targetUname, 'follow');
+      renderSocialAndFriendUI();
+      if (becameFriend) {
+        showToast(`Kalian saling mengikuti! @${targetUname} sekarang menjadi Teman`);
+      } else {
+        showToast(`Kamu mulai mengikuti @${targetUname}`);
+      }
+    }
+
+    function unfollowUserByUsername(targetUname) {
+      const target = normalizeUsername(targetUname);
+      if (!target) return;
+      updateCurrentUser(user => {
+        ensureSocialFieldsOnUser(user);
+        user.following = user.following.filter(u => u !== target);
+      });
+      if (chessState.opponentUsername === target) {
+        chessState.opponentUsername = '';
+        chessState.invitePending = false;
+        showToast(`Duel dibatalkan karena tidak lagi berteman dengan @${target}`);
+      }
+      sendSocialRelationSignal(target, 'unfollow');
+      renderSocialAndFriendUI();
+      renderChessUI();
+      showToast(`Berhenti mengikuti @${target}`);
+    }
+
+    async function followAccountFromInput() {
+      const inp = document.getElementById('followTargetInput');
+      const val = inp ? inp.value : '';
+      await followUserByUsername(val);
+      if (inp) {
+        inp.value = '';
+        renderFollowSuggestions();
+      }
+    }
+
+    function handleIncomingSocialSignal(peerUname, data) {
+      if (!activeUsername || !peerUname || peerUname === activeUsername) return;
+      const action = data.action;
+      let nowMutualFriend = false;
+
+      updateCurrentUser(user => {
+        ensureSocialFieldsOnUser(user);
+        if (action === 'follow') {
+          if (!user.followers.includes(peerUname)) {
+            user.followers.push(peerUname);
+          }
+          nowMutualFriend = user.following.includes(peerUname);
+        } else if (action === 'unfollow') {
+          user.followers = user.followers.filter(u => u !== peerUname);
+        }
+      });
+
+      if (action === 'follow') {
+        if (nowMutualFriend) {
+          showToast(`@${peerUname} juga mengikutimu • Kalian sekarang berteman!`);
+        } else {
+          showToast(`@${peerUname} mulai mengikutimu`);
+        }
+      } else if (action === 'unfollow') {
+        if (chessState.opponentUsername === peerUname && !isMutualFriend(peerUname)) {
+          chessState.opponentUsername = '';
+          chessState.invitePending = false;
+          renderChessUI();
+        }
+        showToast(`@${peerUname} berhenti mengikutimu`);
+      }
+      renderSocialAndFriendUI();
+    }
+
+    function renderSocialAndFriendUI() {
+      const { following, followers, friends } = getSocialListsForCurrentUser();
+      const fCount = document.getElementById('statFriendsCount');
+      const fgCount = document.getElementById('statFollowingCount');
+      const frCount = document.getElementById('statFollowersCount');
+      if (fCount) fCount.textContent = friends.length;
+      if (fgCount) fgCount.textContent = following.length;
+      if (frCount) frCount.textContent = followers.length;
+
+      const sel = document.getElementById('chessFriendSelect');
+      if (sel) {
+        const prevVal = sel.value;
+        sel.innerHTML = '';
+        if (friends.length === 0) {
+          const opt = document.createElement('option');
+          opt.value = '';
+          opt.textContent = 'Belum ada teman (saling mengikuti dulu)';
+          sel.appendChild(opt);
+        } else {
+          friends.forEach(uname => {
+            const opt = document.createElement('option');
+            opt.value = uname;
+            const onStr = isUserOnlineNow(uname) ? ' [Online]' : '';
+            opt.textContent = `${getContactDisplayName(uname)} (@${uname})${onStr}`;
+            sel.appendChild(opt);
+          });
+          if (prevVal && friends.includes(prevVal)) {
+            sel.value = prevVal;
+          }
+        }
+      }
+
+      renderFollowSuggestions();
+
+      const container = document.getElementById('socialListsContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const renderGroup = (title, list, kind) => {
+        const secTitle = document.createElement('div');
+        secTitle.className = 'social-section-title';
+        secTitle.textContent = `${title} (${list.length})`;
+        container.appendChild(secTitle);
+
+        if (list.length === 0) {
+          const empty = document.createElement('div');
+          empty.style.cssText = 'font-size:12px;color:var(--text-muted);padding:4px 2px;';
+          empty.textContent = kind === 'friends'
+            ? 'Belum ada teman. Ikuti akun lalu pastikan akun tersebut juga mengikutimu.'
+            : (kind === 'following' ? 'Kamu belum mengikuti akun siapa pun.' : 'Belum ada pengikut.');
+          container.appendChild(empty);
+          return;
+        }
+
+        list.forEach(uname => {
+          const row = document.createElement('div');
+          row.className = 'social-user-row';
+          const isFriend = friends.includes(uname);
+          const isFollowing = following.includes(uname);
+          const online = isUserOnlineNow(uname);
+
+          const left = document.createElement('div');
+          left.innerHTML = `<strong>@${escapeHtml(uname)}</strong>${isFriend ? '<span class="social-badge-friend">Teman</span>' : ''}<span class="${online ? 'online-tag-inline' : 'offline-tag-inline'}">${online ? '● Online' : '○ Offline'}</span>`;
+
+          const right = document.createElement('div');
+          right.style.display = 'flex';
+          right.style.gap = '6px';
+
+          if (kind === 'friends') {
+            const btnChallenge = document.createElement('button');
+            btnChallenge.type = 'button';
+            btnChallenge.className = 'social-action-btn';
+            btnChallenge.textContent = 'Tantang';
+            btnChallenge.onclick = () => {
+              if (sel) sel.value = uname;
+              sendChessChallenge();
+            };
+            right.appendChild(btnChallenge);
+
+            const btnUnfollow = document.createElement('button');
+            btnUnfollow.type = 'button';
+            btnUnfollow.className = 'social-action-btn secondary';
+            btnUnfollow.textContent = 'Batal Ikuti';
+            btnUnfollow.onclick = () => unfollowUserByUsername(uname);
+            right.appendChild(btnUnfollow);
+          } else if (kind === 'following') {
+            const btnUnfollow = document.createElement('button');
+            btnUnfollow.type = 'button';
+            btnUnfollow.className = 'social-action-btn secondary';
+            btnUnfollow.textContent = 'Batal Ikuti';
+            btnUnfollow.onclick = () => unfollowUserByUsername(uname);
+            right.appendChild(btnUnfollow);
+          } else if (kind === 'followers') {
+            if (!isFollowing) {
+              const btnFollowBack = document.createElement('button');
+              btnFollowBack.type = 'button';
+              btnFollowBack.className = 'social-action-btn';
+              btnFollowBack.textContent = 'Ikuti Balik';
+              btnFollowBack.onclick = () => followUserByUsername(uname);
+              right.appendChild(btnFollowBack);
+            } else {
+              const tag = document.createElement('span');
+              tag.style.cssText = 'font-size:11.5px;color:var(--accent);font-weight:600;';
+              tag.textContent = 'Saling Ikuti';
+              right.appendChild(tag);
+            }
+          }
+
+          row.appendChild(left);
+          row.appendChild(right);
+          container.appendChild(row);
+        });
+      };
+
+      renderGroup('Teman (Saling Mengikuti)', friends, 'friends');
+      renderGroup('Mengikuti', following, 'following');
+      renderGroup('Pengikut', followers, 'followers');
+    }
+
+    // --- TAB NAVIGASI & GAME CATUR DUEL 2 HP (1V1) ---
+    const PIECE_GLYPHS = {
+      wk: '♔', wq: '♕', wr: '♖', wb: '♗', wn: '♘', wp: '♙',
+      bk: '♚', bq: '♛', br: '♜', bb: '♝', bn: '♞', bp: '♟'
+    };
+
+    let chessState = {
+      board: [],
+      turn: 'w',
+      selected: null,
+      legalMoves: [],
+      lastMove: null,
+      gameOver: false,
+      resultText: '',
+      opponentUsername: '',
+      myColor: 'w',
+      invitePending: false
+    };
+
+    let incomingChessInvites = [];
+    let chessSyncTimer = null;
+
+    function createInitialChessBoard() {
+      const backRank = ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'];
+      const b = Array.from({ length: 8 }, () => Array(8).fill(null));
+      for (let c = 0; c < 8; c++) {
+        b[0][c] = 'b' + backRank[c];
+        b[1][c] = 'bp';
+        b[6][c] = 'wp';
+        b[7][c] = 'w' + backRank[c];
+      }
+      return b;
+    }
+
+    function switchMainTab(tabName) {
+      const isGame = tabName === 'game';
+      document.getElementById('tabChats').classList.toggle('active', !isGame);
+      document.getElementById('tabGame').classList.toggle('active', isGame);
+      document.getElementById('viewChats').classList.toggle('active', !isGame);
+      document.getElementById('viewGame').classList.toggle('active', isGame);
+      if (isGame) {
+        if (!chessState.board || chessState.board.length !== 8) {
+          chessState.board = createInitialChessBoard();
+        }
+        renderSocialAndFriendUI();
+        renderChessUI();
+        if (activeUsername) {
+          Promise.all([pollCloudMailboxOnce(), syncDirectoryFromCloud()]).then(() => {
+            renderChessUI();
+          });
+        }
+      }
+    }
+
+    function updateChessInviteBadge() {
+      const pill = document.getElementById('gameInvitePill');
+      if (!pill) return;
+      const cnt = incomingChessInvites.length;
+      pill.style.display = cnt > 0 ? 'inline-block' : 'none';
+      pill.textContent = cnt;
+    }
+
+    function sendChessSignal(peerUsername, payload) {
+      const target = normalizeUsername(peerUsername);
+      if (!activeUsername || !target) return;
+      const packet = {
+        type: 'wa_chess',
+        id: `chess-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        from: activeUsername,
+        to: target,
+        ...payload
+      };
+      seenCloudPacketIds.add(packet.id);
+      if (realtimeChannel) {
+        try { realtimeChannel.postMessage(packet); } catch (e) {}
+      }
+      try {
+        localStorage.setItem(STORAGE_BUS_KEY, JSON.stringify({ nonce: Math.random(), payload: packet }));
+      } catch (e) {}
+      pushPacketToCloudMailbox(target, packet);
+    }
+
+    async function sendChessChallenge() {
+      const rawOpp = document.getElementById('chessFriendSelect')?.value || '';
+      const check = validateUsernameFormat(rawOpp);
+      if (!check.valid) {
+        showToast('Pilih teman yang saling mengikuti terlebih dahulu');
+        return;
+      }
+      const oppUname = check.username;
+      if (oppUname === activeUsername) {
+        showToast('Gunakan nama akun berbeda di HP satunya');
+        return;
+      }
+      if (!isMutualFriend(oppUname)) {
+        showToast(`Hanya bisa menantang teman yang saling mengikuti (@${oppUname} belum saling mengikuti)`);
+        return;
+      }
+      showToast(`Memeriksa teman @${oppUname}...`);
+      const found = await findRegisteredAccount(oppUname);
+      if (!found) {
+        showToast(`Akun @${oppUname} belum terdaftar di server`);
+        return;
+      }
+      chessState = {
+        board: createInitialChessBoard(),
+        turn: 'w',
+        selected: null,
+        legalMoves: [],
+        lastMove: null,
+        gameOver: false,
+        resultText: '',
+        opponentUsername: oppUname,
+        myColor: 'w',
+        invitePending: true
+      };
+      sendChessSignal(oppUname, { action: 'invite', challengerColor: 'w' });
+      renderChessUI();
+      showToast(`Undangan duel catur dikirim ke @${oppUname}`);
+    }
+
+    function acceptChessInvite(challengerUname) {
+      const opp = normalizeUsername(challengerUname);
+      incomingChessInvites = incomingChessInvites.filter(item => item !== opp);
+      chessState = {
+        board: createInitialChessBoard(),
+        turn: 'w',
+        selected: null,
+        legalMoves: [],
+        lastMove: null,
+        gameOver: false,
+        resultText: '',
+        opponentUsername: opp,
+        myColor: 'b',
+        invitePending: false
+      };
+      sendChessSignal(opp, { action: 'accept', acceptorColor: 'b' });
+      updateChessInviteBadge();
+      renderChessUI();
+      showToast(`Duel 2 HP dimulai melawan @${opp} (Kamu Hitam)`);
+    }
+
+    function declineChessInvite(challengerUname) {
+      const opp = normalizeUsername(challengerUname);
+      incomingChessInvites = incomingChessInvites.filter(item => item !== opp);
+      sendChessSignal(opp, { action: 'decline' });
+      updateChessInviteBadge();
+      renderChessInvitesList();
+      showToast(`Tantangan dari @${opp} ditolak`);
+    }
+
+    function formatCoordLabel(r, c) {
+      const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+      return `${files[c] || ''}${8 - r}`;
+    }
+
+    function handleIncomingChessSignal(peerUname, data) {
+      const action = data.action;
+      if (action === 'invite') {
+        if (!incomingChessInvites.includes(peerUname)) {
+          incomingChessInvites.push(peerUname);
+        }
+        updateChessInviteBadge();
+        renderChessInvitesList();
+        showToast(`Tantangan catur 2 HP dari @${peerUname}`);
+      } else if (action === 'accept') {
+        chessState.opponentUsername = peerUname;
+        chessState.myColor = 'w';
+        chessState.invitePending = false;
+        chessState.board = createInitialChessBoard();
+        chessState.turn = 'w';
+        chessState.selected = null;
+        chessState.legalMoves = [];
+        chessState.lastMove = null;
+        chessState.gameOver = false;
+        chessState.resultText = '';
+        renderChessUI();
+        showToast(`@${peerUname} menerima duel catur!`);
+      } else if (action === 'decline') {
+        if (chessState.opponentUsername === peerUname) {
+          chessState.opponentUsername = '';
+          chessState.myColor = 'w';
+          chessState.invitePending = false;
+        }
+        renderChessUI();
+        showToast(`@${peerUname} menolak tantangan catur`);
+      } else if (action === 'move' && data.move) {
+        const m = data.move;
+        const incomingPiece = chessState.board[m.fromR] && chessState.board[m.fromR][m.fromC];
+        if (!incomingPiece || incomingPiece[0] === chessState.myColor) return;
+        chessState.invitePending = false;
+        applyMoveToBoard(chessState.board, m.fromR, m.fromC, m.toR, m.toC);
+        chessState.lastMove = { fromR: m.fromR, fromC: m.fromC, toR: m.toR, toC: m.toC };
+        chessState.turn = data.nextTurn || (chessState.turn === 'w' ? 'b' : 'w');
+        chessState.selected = null;
+        chessState.legalMoves = [];
+        evaluateChessEndState();
+        renderChessUI();
+      } else if (action === 'reset') {
+        chessState.board = createInitialChessBoard();
+        chessState.turn = 'w';
+        chessState.selected = null;
+        chessState.legalMoves = [];
+        chessState.lastMove = null;
+        chessState.gameOver = false;
+        chessState.resultText = '';
+        renderChessUI();
+        showToast(`@${peerUname} memulai ulang papan catur`);
+      } else if (action === 'resign') {
+        chessState.gameOver = true;
+        chessState.resultText = `@${peerUname} menyerah • Kamu Menang!`;
+        renderChessUI();
+        showToast(`@${peerUname} menyerah, kamu menang!`);
+      }
+    }
+
+    function resetChessGame(broadcast) {
+      chessState.board = createInitialChessBoard();
+      chessState.turn = 'w';
+      chessState.selected = null;
+      chessState.legalMoves = [];
+      chessState.lastMove = null;
+      chessState.gameOver = false;
+      chessState.resultText = '';
+      if (broadcast && chessState.opponentUsername) {
+        sendChessSignal(chessState.opponentUsername, { action: 'reset' });
+      }
+      renderChessUI();
+      showToast('Papan catur direset');
+    }
+
+    function resignChessMatch() {
+      if (chessState.gameOver) return;
+      chessState.gameOver = true;
+      if (chessState.opponentUsername) {
+        chessState.resultText = `Kamu menyerah • @${chessState.opponentUsername} Menang`;
+        sendChessSignal(chessState.opponentUsername, { action: 'resign' });
+      } else {
+        const loserLabel = chessState.turn === 'w' ? 'Putih' : 'Hitam';
+        const winnerLabel = chessState.turn === 'w' ? 'Hitam' : 'Putih';
+        chessState.resultText = `${loserLabel} menyerah • ${winnerLabel} menang`;
+      }
+      renderChessUI();
+    }
+
+    function inBounds(r, c) {
+      return r >= 0 && r < 8 && c >= 0 && c < 8;
+    }
+
+    function getPseudoMoves(board, r, c) {
+      const piece = board[r][c];
+      if (!piece) return [];
+      const color = piece[0];
+      const type = piece[1];
+      const moves = [];
+
+      const addSlide = (dr, dc) => {
+        let nr = r + dr;
+        let nc = c + dc;
+        while (inBounds(nr, nc)) {
+          const target = board[nr][nc];
+          if (!target) {
+            moves.push([nr, nc]);
+          } else {
+            if (target[0] !== color) moves.push([nr, nc]);
+            break;
+          }
+          nr += dr;
+          nc += dc;
+        }
+      };
+
+      if (type === 'p') {
+        const dir = color === 'w' ? -1 : 1;
+        const startRow = color === 'w' ? 6 : 1;
+        if (inBounds(r + dir, c) && !board[r + dir][c]) {
+          moves.push([r + dir, c]);
+          if (r === startRow && inBounds(r + 2 * dir, c) && !board[r + 2 * dir][c]) {
+            moves.push([r + 2 * dir, c]);
+          }
+        }
+        [-1, 1].forEach(dc => {
+          const nc = c + dc;
+          const nr = r + dir;
+          if (inBounds(nr, nc) && board[nr][nc] && board[nr][nc][0] !== color) {
+            moves.push([nr, nc]);
+          }
+        });
+      } else if (type === 'n') {
+        const jumps = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]];
+        jumps.forEach(([dr, dc]) => {
+          const nr = r + dr;
+          const nc = c + dc;
+          if (inBounds(nr, nc) && (!board[nr][nc] || board[nr][nc][0] !== color)) {
+            moves.push([nr, nc]);
+          }
+        });
+      } else if (type === 'b') {
+        addSlide(-1, -1); addSlide(-1, 1); addSlide(1, -1); addSlide(1, 1);
+      } else if (type === 'r') {
+        addSlide(-1, 0); addSlide(1, 0); addSlide(0, -1); addSlide(0, 1);
+      } else if (type === 'q') {
+        addSlide(-1, -1); addSlide(-1, 1); addSlide(1, -1); addSlide(1, 1);
+        addSlide(-1, 0); addSlide(1, 0); addSlide(0, -1); addSlide(0, 1);
+      } else if (type === 'k') {
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            if (dr === 0 && dc === 0) continue;
+            const nr = r + dr;
+            const nc = c + dc;
+            if (inBounds(nr, nc) && (!board[nr][nc] || board[nr][nc][0] !== color)) {
+              moves.push([nr, nc]);
+            }
+          }
+        }
+      }
+      return moves;
+    }
+
+    function applyMoveToBoard(board, fromR, fromC, toR, toC) {
+      const piece = board[fromR][fromC];
+      board[toR][toC] = piece;
+      board[fromR][fromC] = null;
+      if (piece === 'wp' && toR === 0) board[toR][toC] = 'wq';
+      if (piece === 'bp' && toR === 7) board[toR][toC] = 'bq';
+    }
+
+    function isKingInCheck(board, color) {
+      let kr = -1, kc = -1;
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if (board[r][c] === color + 'k') {
+            kr = r;
+            kc = c;
+            break;
+          }
+        }
+      }
+      if (kr === -1) return true;
+      const enemy = color === 'w' ? 'b' : 'w';
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if (board[r][c] && board[r][c][0] === enemy) {
+            const enemyMoves = getPseudoMoves(board, r, c);
+            if (enemyMoves.some(([mr, mc]) => mr === kr && mc === kc)) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    }
+
+    function getLegalMovesForSquare(board, r, c) {
+      const piece = board[r][c];
+      if (!piece) return [];
+      const color = piece[0];
+      return getPseudoMoves(board, r, c).filter(([tr, tc]) => {
+        const copy = board.map(row => row.slice());
+        applyMoveToBoard(copy, r, c, tr, tc);
+        return !isKingInCheck(copy, color);
+      });
+    }
+
+    function hasAnyLegalMove(board, color) {
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if (board[r][c] && board[r][c][0] === color) {
+            if (getLegalMovesForSquare(board, r, c).length > 0) return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function evaluateChessEndState() {
+      const currentColor = chessState.turn;
+      if (!hasAnyLegalMove(chessState.board, currentColor)) {
+        chessState.gameOver = true;
+        if (isKingInCheck(chessState.board, currentColor)) {
+          chessState.resultText = currentColor === 'w' ? 'Skakmat • Hitam Menang' : 'Skakmat • Putih Menang';
+        } else {
+          chessState.resultText = 'Remis (Stalemate)';
+        }
+      }
+    }
+
+    function handleChessSquareClick(r, c) {
+      if (chessState.gameOver) {
+        showToast(chessState.resultText || 'Permainan selesai');
+        return;
+      }
+
+      if (!chessState.opponentUsername) {
+        showToast('Tantang akun teman di HP satunya terlebih dahulu untuk mulai duel');
+        return;
+      }
+
+      if (chessState.invitePending) {
+        showToast(`Menunggu @${chessState.opponentUsername} menerima tantangan...`);
+        return;
+      }
+
+      if (chessState.turn !== chessState.myColor) {
+        showToast(`Bukan giliranmu • Menunggu langkah @${chessState.opponentUsername}`);
+        return;
+      }
+
+      const clickedPiece = chessState.board[r][c];
+      if (chessState.selected) {
+        const isLegal = chessState.legalMoves.some(([mr, mc]) => mr === r && mc === c);
+        if (isLegal) {
+          const [fr, fc] = chessState.selected;
+          const movingPiece = chessState.board[fr][fc];
+          if (!movingPiece || movingPiece[0] !== chessState.myColor) {
+            chessState.selected = null;
+            chessState.legalMoves = [];
+            renderChessUI();
+            return;
+          }
+
+          applyMoveToBoard(chessState.board, fr, fc, r, c);
+          chessState.lastMove = { fromR: fr, fromC: fc, toR: r, toC: c };
+          const nextTurn = chessState.turn === 'w' ? 'b' : 'w';
+          chessState.turn = nextTurn;
+          chessState.selected = null;
+          chessState.legalMoves = [];
+          evaluateChessEndState();
+
+          sendChessSignal(chessState.opponentUsername, {
+            action: 'move',
+            move: { fromR: fr, fromC: fc, toR: r, toC: c },
+            nextTurn: nextTurn
+          });
+          renderChessUI();
+          return;
+        }
+      }
+
+      if (clickedPiece && clickedPiece[0] === chessState.myColor && chessState.turn === chessState.myColor) {
+        chessState.selected = [r, c];
+        chessState.legalMoves = getLegalMovesForSquare(chessState.board, r, c);
+      } else {
+        if (clickedPiece && clickedPiece[0] !== chessState.myColor) {
+          showToast('Itu bidak tim lawan • Kamu hanya bisa menggerakkan bidakmu sendiri');
+        }
+        chessState.selected = null;
+        chessState.legalMoves = [];
+      }
+      renderChessUI();
+    }
+
+    function renderChessInvitesList() {
+      const box = document.getElementById('chessIncomingInvites');
+      if (!box) return;
+      if (incomingChessInvites.length === 0) {
+        box.innerHTML = '';
+        return;
+      }
+      box.innerHTML = '';
+      incomingChessInvites.forEach(challenger => {
+        const row = document.createElement('div');
+        row.className = 'invite-item';
+        row.innerHTML = `
+          <div style="font-size:12.5px;">Tantangan duel 2 HP dari <strong>@${escapeHtml(challenger)}</strong></div>
+        `;
+        const actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.gap = '6px';
+
+        const btnAccept = document.createElement('button');
+        btnAccept.type = 'button';
+        btnAccept.className = 'invite-btn-sm';
+        btnAccept.textContent = 'Terima';
+        btnAccept.onclick = () => acceptChessInvite(challenger);
+
+        const btnDecline = document.createElement('button');
+        btnDecline.type = 'button';
+        btnDecline.style.cssText = 'background:var(--bg-surface);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:12px;font-weight:600;cursor:pointer;';
+        btnDecline.textContent = 'Tolak';
+        btnDecline.onclick = () => declineChessInvite(challenger);
+
+        actions.appendChild(btnAccept);
+        actions.appendChild(btnDecline);
+        row.appendChild(actions);
+        box.appendChild(row);
+      });
+    }
+
+    function renderChessUI() {
+      renderSocialAndFriendUI();
+      renderChessInvitesList();
+      const boardEl = document.getElementById('chessBoard');
+      const turnEl = document.getElementById('chessTurnText');
+      const sideEl = document.getElementById('chessSideInfo');
+      const subEl = document.getElementById('chessMatchSubtitle');
+      const topStrip = document.getElementById('chessTopStrip');
+      const bottomStrip = document.getElementById('chessBottomStrip');
+      const topName = document.getElementById('chessTopName');
+      const topBadge = document.getElementById('chessTopBadge');
+      const bottomName = document.getElementById('chessBottomName');
+      const lastMoveEl = document.getElementById('chessLastMoveText');
+      if (!boardEl || !turnEl || !sideEl || !subEl) return;
+
+      const isFlippedForBlack = Boolean(chessState.opponentUsername && chessState.myColor === 'b');
+      const myColorLabel = chessState.myColor === 'b' ? 'Hitam' : 'Putih';
+      const oppColorLabel = chessState.myColor === 'b' ? 'Putih' : 'Hitam';
+
+      if (chessState.gameOver) {
+        turnEl.textContent = chessState.resultText || 'Permainan Selesai';
+      } else if (chessState.opponentUsername && chessState.invitePending) {
+        turnEl.textContent = `Menunggu @${chessState.opponentUsername} menerima...`;
+      } else if (chessState.opponentUsername) {
+        const isMyTurn = chessState.turn === chessState.myColor;
+        const chk = isKingInCheck(chessState.board, chessState.turn) ? ' • Skak!' : '';
+        turnEl.textContent = isMyTurn ? `Giliran Kamu (${myColorLabel})${chk}` : `Giliran @${chessState.opponentUsername}${chk}`;
+      } else {
+        const turnName = chessState.turn === 'w' ? 'Putih' : 'Hitam';
+        const chk = isKingInCheck(chessState.board, chessState.turn) ? ' • Skak!' : '';
+        turnEl.textContent = `Giliran: ${turnName}${chk}`;
+      }
+
+      if (chessState.opponentUsername) {
+        sideEl.textContent = `2 HP • Kamu ${myColorLabel}`;
+        subEl.textContent = `Duel langsung melawan @${chessState.opponentUsername}`;
+        if (topName) topName.textContent = `@${chessState.opponentUsername} (${oppColorLabel})`;
+        if (bottomName) bottomName.textContent = `@${activeUsername || 'Kamu'} (${myColorLabel})`;
+        if (topBadge) {
+          topBadge.textContent = chessState.turn !== chessState.myColor && !chessState.gameOver ? 'Sedang berpikir...' : 'Siap';
+        }
+        if (topStrip) topStrip.classList.toggle('active-turn', !chessState.gameOver && chessState.turn !== chessState.myColor);
+        if (bottomStrip) bottomStrip.classList.toggle('active-turn', !chessState.gameOver && chessState.turn === chessState.myColor);
+      } else {
+        sideEl.textContent = 'Papan 1v1';
+        subEl.textContent = 'Pilih teman yang saling mengikuti untuk duel 2 HP';
+        if (topName) topName.textContent = 'Pemain Hitam';
+        if (bottomName) bottomName.textContent = 'Pemain Putih';
+        if (topBadge) topBadge.textContent = '2 Pemain';
+        if (topStrip) topStrip.classList.toggle('active-turn', !chessState.gameOver && chessState.turn === 'b');
+        if (bottomStrip) bottomStrip.classList.toggle('active-turn', !chessState.gameOver && chessState.turn === 'w');
+      }
+
+      if (lastMoveEl) {
+        if (chessState.lastMove) {
+          lastMoveEl.textContent = `Langkah: ${formatCoordLabel(chessState.lastMove.fromR, chessState.lastMove.fromC)} → ${formatCoordLabel(chessState.lastMove.toR, chessState.lastMove.toC)}`;
+        } else {
+          lastMoveEl.textContent = 'Belum ada langkah';
+        }
+      }
+
+      boardEl.innerHTML = '';
+      for (let vr = 0; vr < 8; vr++) {
+        for (let vc = 0; vc < 8; vc++) {
+          const r = isFlippedForBlack ? 7 - vr : vr;
+          const c = isFlippedForBlack ? 7 - vc : vc;
+
+          const sq = document.createElement('div');
+          const isLight = (r + c) % 2 === 0;
+          sq.className = `chess-sq ${isLight ? 'light' : 'dark'}`;
+
+          const piece = chessState.board[r][c];
+          if (piece) {
+            sq.classList.add(piece[0] === 'w' ? 'piece-white' : 'piece-black');
+            sq.textContent = PIECE_GLYPHS[piece] || '';
+          }
+
+          if (chessState.lastMove && ((chessState.lastMove.fromR === r && chessState.lastMove.fromC === c) || (chessState.lastMove.toR === r && chessState.lastMove.toC === c))) {
+            sq.classList.add('chess-last-move');
+          }
+
+          if (chessState.selected && chessState.selected[0] === r && chessState.selected[1] === c) {
+            sq.classList.add('selected');
+          }
+
+          const isLegal = chessState.legalMoves.some(([mr, mc]) => mr === r && mc === c);
+          if (isLegal) {
+            sq.classList.add(piece ? 'legal-capture' : 'legal-move');
+          }
+
+          sq.onclick = () => handleChessSquareClick(r, c);
+          boardEl.appendChild(sq);
+        }
+      }
+    }
+
+    if (!chessSyncTimer) {
+      chessSyncTimer = setInterval(async () => {
+        if (activeUsername) {
+          await pollCloudMailboxOnce();
+          if (document.getElementById('viewGame')?.classList.contains('active')) {
+            renderChessUI();
+          }
+        }
+      }, 1500);
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // Boot session
+    (function boot() {
+      purgeExpiredInactiveAccounts();
+      syncDirectoryFromCloud();
+      const savedUname = normalizeUsername(localStorage.getItem(STORAGE_SESSION_KEY));
+      if (savedUname) {
+        const users = loadAllUsers();
+        if (users[savedUname]) {
+          if (isAccountExpiredByInactivity(users[savedUname])) {
+            delete users[savedUname];
+            saveAllUsers(users);
+            localStorage.removeItem(STORAGE_SESSION_KEY);
+            return;
+          }
+          activeUsername = savedUname;
+          touchCurrentUserActivity();
+          const freshUser = getCurrentUser();
+          announceAccountToCloud(savedUname, freshUser.displayName, freshUser.status, freshUser.passwordHash, false);
+          document.getElementById('authScreen').classList.add('hidden');
+          setupRealtimeListeners();
+          refreshAllViews();
+        }
+      }
+      setInterval(() => {
+        purgeExpiredInactiveAccounts();
+        if (activeUsername && !getCurrentUser()) {
+          logoutAccountSession();
+        }
+      }, 60 * 60 * 1000);
+    })();
+  </script>
+</body>
+</html>
